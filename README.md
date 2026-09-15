@@ -2,6 +2,8 @@
 
 Monorepositorio de los prototipos digitales de PLO Droguería.
 
+Abre `index.html` para acceder al centro unificado de módulos.
+
 ## Módulos
 
 - `apps/PLOLanding`: sitio público y captación de clientes.
