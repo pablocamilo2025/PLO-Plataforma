@@ -2,7 +2,7 @@
 
 Monorepositorio de los prototipos digitales de PLO Droguería.
 
-Abre `index.html` para acceder al centro unificado de módulos.
+`index.html` contiene la portada temporal de PLO Farma. El centro unificado de prototipos se conserva en `plataforma.html`.
 
 ## Módulos
 
