@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLO Compras Informadas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#F4F1EA;
+    --panel:#FFFFFF;
+    --panel-2:#F0ECE1;
+    --line:rgba(61,53,41,0.14);
+    --line-soft:rgba(61,53,41,0.07);
+    --text:#3D3929;
+    --text-dim:#6B6255;
+    --text-faint:#A39A8A;
+    --emerald:#D97757;
+    --mint:#7A9471;
+    --sky:#6B93A8;
+    --amber:#C68A2E;
+    --red:#B54B3A;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    position:relative;
+    overflow-x:hidden;
+  }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  .display{ font-family:'Archivo', sans-serif; }
+
+  /* ambient orbs */
+  .orb{ position:fixed; border-radius:50%; filter:blur(90px); opacity:0.10; pointer-events:none; z-index:0; }
+  .orb-1{ width:520px; height:520px; background:var(--emerald); top:-180px; left:-120px; animation: float1 22s ease-in-out infinite; }
+  .orb-2{ width:420px; height:420px; background:var(--sky); bottom:-160px; right:-100px; animation: float2 26s ease-in-out infinite; }
+  @keyframes float1{ 0%,100%{transform:translate(0,0)} 50%{transform:translate(40px,30px)} }
+  @keyframes float2{ 0%,100%{transform:translate(0,0)} 50%{transform:translate(-30px,-40px)} }
+
+  .wrap{ position:relative; z-index:1; max-width:1360px; margin:0 auto; padding:36px 28px 80px; }
+
+  /* header */
+  header{ display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom:28px; }
+  .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--emerald); margin-bottom:10px; display:flex; gap:10px; align-items:center; }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:var(--emerald); animation:pulse 2s infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
+  h1{ font-family:'Archivo',sans-serif; font-weight:800; font-size:32px; letter-spacing:-0.01em; }
+  .sub{ color:var(--text-dim); font-size:14.5px; margin-top:6px; max-width:560px; line-height:1.5; }
+  .badges{ display:flex; gap:8px; flex-wrap:wrap; }
+  .badge{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.04em; padding:6px 11px; border-radius:100px; border:1px solid var(--line); color:var(--text-dim); background:rgba(61,53,41,0.035); }
+  .badge.warn{ color:var(--amber); border-color:rgba(198,138,46,0.35); background:rgba(198,138,46,0.08); }
+  .badge.ok{ color:var(--emerald); border-color:rgba(217,119,87,0.3); background:rgba(217,119,87,0.08); }
+  .date-chip{ text-align:right; }
+  .date-chip .d{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--text); }
+  .date-chip .l{ font-size:11px; color:var(--text-faint); margin-top:2px; }
+
+  /* ingesta panel */
+  .section-label{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--text-faint); margin:32px 0 12px; display:flex; align-items:center; gap:10px; }
+  .section-label::after{ content:''; flex:1; height:1px; background:var(--line-soft); }
+
+  .ingesta-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:12px; }
+  .lab-card.upload{ border:1.5px dashed var(--line); background:transparent; cursor:pointer; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:16px; transition:all .15s; }
+  .lab-card.upload::before{ display:none; }
+  .lab-card.upload:hover{ border-color:var(--emerald); background:rgba(217,119,87,0.05); }
+  .upload-icon{ font-size:22px; color:var(--emerald); margin-bottom:6px; font-weight:300; line-height:1; }
+  .upload-label{ font-size:12.5px; font-weight:600; color:var(--text); }
+  .upload-sub{ font-size:10.5px; color:var(--text-faint); margin-top:2px; font-family:'IBM Plex Mono',monospace; }
+  .lab-card{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px; position:relative; overflow:hidden; }
+  .lab-card::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:3px; }
+  .lab-card.done::before{ background:var(--emerald); }
+  .lab-card.progress::before{ background:var(--amber); }
+  .lab-card.pending::before{ background:var(--text-faint); opacity:.4; }
+  .lab-name{ font-weight:600; font-size:14px; margin-bottom:10px; }
+  .lab-status{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+  .status-icon{ width:6px; height:6px; border-radius:50%; }
+  .lab-card.done .status-icon{ background:var(--emerald); }
+  .lab-card.progress .status-icon{ background:var(--amber); animation:pulse 1.4s infinite; }
+  .lab-card.pending .status-icon{ background:var(--text-faint); }
+  .lab-card.done .lab-status{ color:var(--mint); }
+  .lab-card.progress .lab-status{ color:var(--amber); }
+  .lab-card.pending .lab-status{ color:var(--text-faint); }
+  .lab-meta{ font-size:12px; color:var(--text-dim); }
+  .lab-meta b{ color:var(--text); font-family:'IBM Plex Mono',monospace; font-weight:500; }
+
+  /* KPI row */
+  .kpi-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:6px; }
+  .kpi-card{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px 20px; position:relative; overflow:hidden; }
+  .kpi-card::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:3px; }
+  .kpi-card.c1::before{ background:var(--sky); }
+  .kpi-card.c2::before{ background:var(--amber); }
+  .kpi-card.c3::before{ background:var(--mint); }
+  .kpi-card.c4::before{ background:var(--emerald); }
+  .kpi-label{ font-size:11.5px; color:var(--text-dim); margin-bottom:8px; }
+  .kpi-value{ font-family:'Archivo',sans-serif; font-weight:700; font-size:26px; }
+  .kpi-value.amber{ color:var(--amber); }
+  .kpi-value.mint{ color:var(--mint); }
+  .kpi-sub{ font-size:11.5px; color:var(--text-faint); margin-top:4px; font-family:'IBM Plex Mono',monospace; }
+
+  /* filters */
+  .coverage-row{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-top:8px; margin-bottom:2px; }
+  .coverage-label{ font-size:12.5px; color:var(--text-dim); margin-right:2px; }
+  .coverage-chip.active{ background:var(--sky); color:#FFFFFF; border-color:var(--sky); font-weight:600; }
+  .coverage-note{ font-size:11px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace; margin-left:4px; }
+
+  .filter-row{ display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; align-items:center; }
+  .chip{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; padding:8px 14px; border-radius:100px; border:1px solid var(--line); color:var(--text-dim); background:transparent; cursor:pointer; transition:all .15s; }
+  .chip:hover{ border-color:var(--emerald); color:var(--text); }
+  .chip.active{ background:var(--emerald); color:#FFFFFF; border-color:var(--emerald); font-weight:600; }
+  .search-box{ margin-left:auto; position:relative; }
+  .search-box input{ background:var(--panel); border:1px solid var(--line); border-radius:100px; padding:8px 14px 8px 34px; color:var(--text); font-size:12.5px; width:220px; font-family:'Inter',sans-serif; }
+  .search-box input::placeholder{ color:var(--text-faint); }
+  .search-box svg{ position:absolute; left:12px; top:50%; transform:translateY(-50%); }
+
+  /* table */
+  .table-wrap{ background:var(--panel); border:1px solid var(--line); border-radius:16px; overflow:hidden; margin-top:14px; }
+  table{ width:100%; border-collapse:collapse; font-size:13px; }
+  thead th{ text-align:left; padding:13px 14px; font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--text-faint); border-bottom:1px solid var(--line); background:var(--panel-2); white-space:nowrap; }
+  tbody tr{ border-bottom:1px solid var(--line-soft); position:relative; transition:background .12s; }
+  tbody tr:hover{ background:rgba(61,53,41,0.035); }
+  tbody tr td{ padding:13px 14px; vertical-align:middle; }
+  tbody tr.flag-urgent{ box-shadow: inset 3px 0 0 var(--red); }
+  tbody tr.flag-opp{ box-shadow: inset 3px 0 0 var(--emerald); }
+  tbody tr.flag-watch{ box-shadow: inset 3px 0 0 var(--amber); }
+  .prod-name{ font-weight:600; }
+  .prod-lab{ font-size:11px; color:var(--text-faint); margin-top:2px; }
+  .price{ font-family:'IBM Plex Mono',monospace; }
+  .price-old{ color:var(--text-faint); text-decoration:line-through; font-size:11.5px; }
+  .delta{ font-family:'IBM Plex Mono',monospace; font-size:11.5px; padding:2px 7px; border-radius:6px; display:inline-block; margin-top:3px; }
+  .delta.up{ color:var(--red); background:rgba(181,75,58,0.1); }
+  .delta.down{ color:var(--mint); background:rgba(217,119,87,0.12); }
+  .delta.flat{ color:var(--text-faint); background:rgba(61,53,41,0.05); }
+  .stock-pill{ font-family:'IBM Plex Mono',monospace; font-size:12px; }
+  .stock-low{ color:var(--red); font-weight:600; }
+  .stock-ok{ color:var(--text-dim); }
+  .venc{ font-size:11.5px; }
+  .venc.soon{ color:var(--amber); font-family:'IBM Plex Mono',monospace; }
+  .venc.far{ color:var(--text-faint); font-family:'IBM Plex Mono',monospace; }
+  .qty-input{ width:56px; background:var(--panel-2); border:1px solid var(--line); border-radius:7px; color:var(--text); text-align:center; padding:6px 4px; font-family:'IBM Plex Mono',monospace; font-size:13px; }
+  .qty-input:focus{ outline:none; border-color:var(--emerald); }
+  .subtotal{ font-family:'IBM Plex Mono',monospace; font-weight:600; }
+  .tag{ font-size:10px; font-family:'IBM Plex Mono',monospace; padding:3px 8px; border-radius:100px; display:inline-flex; align-items:center; gap:4px; }
+  .tag.urgent{ color:var(--red); background:rgba(181,75,58,0.12); }
+  .tag.opp{ color:var(--mint); background:rgba(217,119,87,0.12); }
+  .tag.watch{ color:var(--amber); background:rgba(198,138,46,0.12); }
+  .tag.normal{ color:var(--text-faint); background:rgba(61,53,41,0.05); }
+
+  /* footer summary */
+  .summary-bar{ margin-top:20px; background:linear-gradient(135deg, rgba(217,119,87,0.08), rgba(107,147,168,0.05)); border:1px solid rgba(122,148,113,0.2); border-radius:16px; padding:20px 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+  .summary-left .label{ font-size:11.5px; color:var(--text-dim); margin-bottom:4px; }
+  .summary-left .value{ font-family:'Archivo',sans-serif; font-weight:800; font-size:28px; color:var(--mint); }
+  .summary-left .value span{ font-size:15px; color:var(--text-dim); font-weight:500; margin-left:8px; }
+  .btn-row{ display:flex; gap:10px; }
+  .btn{ font-family:'Inter',sans-serif; font-weight:600; font-size:13px; padding:12px 20px; border-radius:11px; border:none; cursor:pointer; transition:transform .12s, opacity .12s; }
+  .btn:active{ transform:scale(0.97); }
+  .btn-primary{ background:var(--emerald); color:#FFFFFF; }
+  .btn-primary:hover{ opacity:.92; }
+  .btn-ghost{ background:transparent; border:1px solid var(--line); color:var(--text-dim); }
+  .btn-ghost:hover{ border-color:var(--text-dim); color:var(--text); }
+
+  /* toast */
+  .toast{ position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--panel); border:1px solid var(--emerald); border-radius:12px; padding:14px 20px; font-size:13px; display:flex; align-items:center; gap:10px; opacity:0; pointer-events:none; transition:all .25s; z-index:50; box-shadow:0 10px 40px rgba(61,53,41,0.18); }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .toast .ic{ color:var(--mint); }
+
+  .tag.alt{ color:var(--sky); background:rgba(107,147,168,0.12); }
+
+  .flag-alt{ box-shadow: inset 3px 0 0 var(--sky); }
+
+  /* negotiation panel */
+  .neg-intro{ color:var(--text-dim); font-size:13px; margin-bottom:14px; max-width:640px; line-height:1.5; }
+  .negotiation-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:14px; margin-bottom:8px; }
+  .negotiation-card{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; position:relative; overflow:hidden; }
+  .negotiation-card::before{ content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--sky); }
+  .neg-molecule{ font-weight:600; font-size:14px; margin-bottom:12px; }
+  .neg-compare{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .neg-lab{ flex:1; padding:9px 11px; border-radius:9px; }
+  .neg-lab.cheap{ background:rgba(217,119,87,0.1); border:1px solid rgba(122,148,113,0.25); }
+  .neg-lab.expensive{ background:rgba(61,53,41,0.045); border:1px solid var(--line-soft); }
+  .neg-lab-name{ font-size:11px; color:var(--text-dim); margin-bottom:3px; }
+  .neg-lab-price{ font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:15px; }
+  .neg-lab.cheap .neg-lab-price{ color:var(--mint); }
+  .neg-arrow{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-faint); }
+  .neg-savings{ font-size:12.5px; color:var(--text-dim); margin-bottom:8px; }
+  .neg-savings b{ color:var(--mint); font-family:'IBM Plex Mono',monospace; }
+  .neg-action{ font-size:12px; color:var(--text-faint); line-height:1.5; border-top:1px solid var(--line-soft); padding-top:10px; }
+
+  .footnote{ text-align:center; color:var(--text-faint); font-size:11.5px; margin-top:36px; font-family:'IBM Plex Mono',monospace; }
+
+  /* AI Analyst chat panel */
+  .chat-panel{ background:var(--panel); border:1px solid var(--line); border-radius:16px; margin-top:14px; overflow:hidden; }
+  .chat-header{ display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--line-soft); background:var(--panel-2); flex-wrap:wrap; gap:10px; }
+  .chat-header-left{ display:flex; align-items:center; gap:12px; }
+  .chat-avatar{ width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg, var(--emerald), var(--sky)); display:flex; align-items:center; justify-content:center; font-family:'Archivo',sans-serif; font-weight:800; font-size:13px; color:#FFFFFF; flex-shrink:0; }
+  .chat-title{ font-weight:600; font-size:14px; }
+  .chat-title .sub2{ font-size:11px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace; margin-top:3px; font-weight:400; }
+  .chat-badge{ font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--mint); background:rgba(217,119,87,0.1); border:1px solid rgba(122,148,113,0.25); padding:5px 11px; border-radius:100px; white-space:nowrap; }
+
+  .chat-messages{ padding:20px; max-height:420px; overflow-y:auto; display:flex; flex-direction:column; gap:14px; }
+  .msg{ max-width:82%; padding:12px 16px; border-radius:14px; font-size:13.5px; line-height:1.6; }
+  .msg.assistant{ background:var(--panel-2); border:1px solid var(--line-soft); align-self:flex-start; border-bottom-left-radius:4px; }
+  .msg.user{ background:var(--emerald); color:#FFFFFF; align-self:flex-end; border-bottom-right-radius:4px; font-weight:500; }
+  .msg.assistant strong{ color:var(--mint); }
+  .msg-loading{ display:flex; gap:5px; align-self:flex-start; padding:12px 16px; background:var(--panel-2); border-radius:14px; border-bottom-left-radius:4px; }
+  .msg-loading span{ width:6px; height:6px; border-radius:50%; background:var(--text-faint); animation:loadingDot 1.2s infinite; }
+  .msg-loading span:nth-child(2){ animation-delay:.2s; }
+  .msg-loading span:nth-child(3){ animation-delay:.4s; }
+  @keyframes loadingDot{ 0%,100%{opacity:.3; transform:translateY(0);} 50%{opacity:1; transform:translateY(-3px);} }
+
+  .chat-suggestions{ padding:0 20px 14px; display:flex; gap:8px; flex-wrap:wrap; }
+  .suggestion-chip{ font-size:11.5px; padding:7px 13px; border-radius:100px; border:1px solid var(--line); color:var(--text-dim); background:transparent; cursor:pointer; transition:all .15s; font-family:'Inter',sans-serif; }
+  .suggestion-chip:hover{ border-color:var(--sky); color:var(--text); }
+
+  .chat-input-row{ display:flex; gap:10px; padding:16px 20px; border-top:1px solid var(--line-soft); }
+  .chat-input-row input{ flex:1; background:var(--panel-2); border:1px solid var(--line); border-radius:100px; padding:12px 18px; color:var(--text); font-size:13.5px; font-family:'Inter',sans-serif; }
+  .chat-input-row input:focus{ outline:none; border-color:var(--emerald); }
+  .chat-send{ background:var(--emerald); color:#FFFFFF; border:none; border-radius:100px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:opacity .15s; }
+  .chat-send:hover{ opacity:.9; }
+  .chat-send:disabled{ opacity:.4; cursor:not-allowed; }
+
+  @media (max-width: 980px){
+    .ingesta-grid{ grid-template-columns:repeat(2,1fr); }
+    .kpi-grid{ grid-template-columns:repeat(2,1fr); }
+    .table-wrap{ overflow-x:auto; }
+    table{ min-width:1000px; }
+  }
+
+  /* login screen */
+  .login-screen{ position:fixed; inset:0; background:var(--ink); display:flex; align-items:center; justify-content:center; z-index:100; transition:opacity .4s ease, visibility .4s ease; }
+  .login-screen.hidden{ opacity:0; visibility:hidden; pointer-events:none; }
+  .login-card{ background:var(--panel); border:1px solid var(--line); border-radius:20px; padding:44px 40px; width:100%; max-width:360px; text-align:center; box-shadow:0 24px 60px rgba(61,53,41,0.12); position:relative; z-index:1; }
+  .login-logo{ font-family:'Archivo',sans-serif; font-weight:800; font-size:14px; letter-spacing:.14em; color:var(--emerald); margin-bottom:8px; }
+  .login-title{ font-family:'Archivo',sans-serif; font-weight:700; font-size:20px; color:var(--text); margin-bottom:30px; }
+  .login-avatar{ width:64px; height:64px; border-radius:50%; background:var(--emerald); color:#FFFFFF; font-family:'Archivo',sans-serif; font-weight:800; font-size:22px; display:flex; align-items:center; justify-content:center; margin:0 auto 16px; }
+  .login-name{ font-weight:700; font-size:16px; color:var(--text); }
+  .login-role{ font-size:12px; color:var(--text-dim); margin-top:4px; margin-bottom:26px; }
+  .login-input{ width:100%; background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:13px 14px; color:var(--text); font-size:14px; text-align:center; letter-spacing:.25em; margin-bottom:16px; font-family:'IBM Plex Mono',monospace; }
+  .login-btn{ width:100%; background:var(--emerald); color:#FFFFFF; border:none; border-radius:10px; padding:13px; font-family:'Inter',sans-serif; font-weight:600; font-size:14px; cursor:pointer; transition:opacity .15s; }
+  .login-btn:hover{ opacity:.9; }
+  .login-footnote{ margin-top:18px; font-size:10.5px; color:var(--text-faint); font-family:'IBM Plex Mono',monospace; }
+
+  /* onboarding tour — dynamic spotlight */
+  .tour-overlay{ position:fixed; inset:0; z-index:90; opacity:0; visibility:hidden; pointer-events:none; transition:opacity .3s ease, visibility .3s ease; }
+  .tour-overlay.show{ opacity:1; visibility:visible; pointer-events:auto; }
+  .tour-spotlight{ position:fixed; border-radius:14px; box-shadow:0 0 0 9999px rgba(61,53,41,0.55); border:2px solid var(--emerald); pointer-events:none; z-index:91; transition:top .4s ease, left .4s ease, width .4s ease, height .4s ease, opacity .2s ease; opacity:0; }
+  .tour-spotlight.visible{ opacity:1; }
+  .tour-card-wrap{ position:fixed; z-index:92; width:340px; max-width:calc(100vw - 32px); transition:top .4s ease, left .4s ease, opacity .2s ease; opacity:0; }
+  .tour-card-wrap.visible{ opacity:1; }
+  .tour-card{ background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:26px; box-shadow:0 20px 50px rgba(61,53,41,0.25); }
+  .tour-step-count{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--text-faint); margin-bottom:10px; }
+  .tour-step-icon{ font-size:28px; margin-bottom:10px; }
+  .tour-step-title{ font-family:'Archivo',sans-serif; font-weight:700; font-size:17px; color:var(--text); margin-bottom:8px; }
+  .tour-step-desc{ font-size:13px; color:var(--text-dim); line-height:1.55; margin-bottom:18px; }
+  .tour-dots{ display:flex; gap:6px; margin-bottom:18px; }
+  .tour-dot{ width:6px; height:6px; border-radius:50%; background:var(--line); transition:all .2s; }
+  .tour-dot.active{ background:var(--emerald); width:18px; border-radius:4px; }
+  .tour-actions{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+  .tour-skip{ background:none; border:none; color:var(--text-faint); font-size:12px; cursor:pointer; font-family:'Inter',sans-serif; padding:0; }
+  .tour-skip:hover{ color:var(--text-dim); }
+  .tour-btn{ font-family:'Inter',sans-serif; font-weight:600; font-size:12.5px; padding:9px 16px; border-radius:9px; cursor:pointer; border:none; }
+  .tour-btn.ghost{ background:transparent; border:1px solid var(--line); color:var(--text-dim); }
+  .tour-btn.primary{ background:var(--emerald); color:#FFFFFF; }
+  .tour-btn.primary:hover{ opacity:.9; }
+</style>
+</head>
+<body>
+
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">PLO DROGUERÍA</div>
+    <div class="login-title">Compras Informadas</div>
+    <div class="login-avatar">PL</div>
+    <div class="login-name">Patricio Leiva</div>
+    <div class="login-role">Encargado de Compras · PLO Droguería</div>
+    <input type="password" class="login-input" value="••••••••" readonly>
+    <button class="login-btn" onclick="doLogin()">Ingresar</button>
+    <div class="login-footnote">Acceso simulado para demostración</div>
+  </div>
+</div>
+
+<div class="tour-overlay" id="tourOverlay">
+  <div class="tour-spotlight" id="tourSpotlight"></div>
+  <div class="tour-card-wrap" id="tourCardWrap">
+    <div class="tour-card">
+      <div class="tour-step-count" id="tourCount"></div>
+      <div class="tour-step-icon" id="tourIcon">👋</div>
+      <div class="tour-step-title" id="tourTitle"></div>
+      <div class="tour-step-desc" id="tourDesc"></div>
+      <div class="tour-dots" id="tourDots"></div>
+      <div class="tour-actions">
+        <button class="tour-skip" onclick="closeTour()">Saltar tour</button>
+        <div style="display:flex; gap:8px;">
+          <button class="tour-btn ghost" id="tourPrevBtn" onclick="tourPrev()">Anterior</button>
+          <button class="tour-btn primary" id="tourNextBtn" onclick="tourNext()">Siguiente</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="eyebrow"><span class="dot"></span> PLO Compras Informadas</div>
+      <h1>Su información de compra, toda en un solo lugar</h1>
+      <p class="sub">Tu copiloto de compras: analiza el stock que ya tienes en bodega, cruza las listas de precios de tus proveedores, detecta cuándo un laboratorio te ofrece lo mismo más barato que otro, y te dice qué comprar, cuánto pedir y dónde tienes margen para negociar mejor precio.</p>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:14px;">
+      <div class="badges">
+        <span class="badge ok">Prototipo funcional</span>
+        <span class="badge warn">Datos simulados</span>
+      </div>
+      <div class="date-chip">
+        <div class="d">Lunes 17 Ago 2026</div>
+        <div class="l">Ciclo de listas semanal</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="section-label">Ingesta de listas — esta semana</div>
+  <div class="ingesta-grid" id="ingestaGrid">
+    <div class="lab-card done">
+      <div class="lab-name">Laboratorio Chile</div>
+      <div class="lab-status"><span class="status-icon"></span> PROCESADO</div>
+      <div class="lab-meta"><b>47</b> productos extraídos</div>
+    </div>
+    <div class="lab-card done">
+      <div class="lab-name">Saval</div>
+      <div class="lab-status"><span class="status-icon"></span> PROCESADO</div>
+      <div class="lab-meta"><b>32</b> productos extraídos</div>
+    </div>
+    <div class="lab-card done">
+      <div class="lab-name">Andrómaco</div>
+      <div class="lab-status"><span class="status-icon"></span> PROCESADO</div>
+      <div class="lab-meta"><b>28</b> productos extraídos</div>
+    </div>
+    <div class="lab-card progress">
+      <div class="lab-name">Bagó</div>
+      <div class="lab-status"><span class="status-icon"></span> LEYENDO PDF...</div>
+      <div class="lab-meta">estimado <b>~35</b> productos</div>
+    </div>
+    <div class="lab-card pending">
+      <div class="lab-name">Mintlab</div>
+      <div class="lab-status"><span class="status-icon"></span> PENDIENTE</div>
+      <div class="lab-meta">esperando envío del lab</div>
+    </div>
+    <div class="lab-card upload" id="uploadCard" onclick="triggerManualUpload()">
+      <div class="upload-icon">＋</div>
+      <div class="upload-label">Subir lista manual</div>
+      <div class="upload-sub">PDF o DOCX</div>
+      <input type="file" id="manualUploadInput" accept=".pdf,.docx" style="display:none" onchange="handleManualUpload(event)">
+    </div>
+  </div>
+
+  <div class="section-label">Resumen del cruce</div>
+  <div class="kpi-grid">
+    <div class="kpi-card c1">
+      <div class="kpi-label">Productos analizados</div>
+      <div class="kpi-value">107</div>
+      <div class="kpi-sub">de 5 laboratorios</div>
+    </div>
+    <div class="kpi-card c2">
+      <div class="kpi-label">Alertas de stock bajo</div>
+      <div class="kpi-value amber">12</div>
+      <div class="kpi-sub">rotación alta + stock crítico</div>
+    </div>
+    <div class="kpi-card c3">
+      <div class="kpi-label">Ahorro potencial detectado</div>
+      <div class="kpi-value mint">$341.200</div>
+      <div class="kpi-sub">vs. precio de última compra</div>
+    </div>
+    <div class="kpi-card c4">
+      <div class="kpi-label">Pedido sugerido total</div>
+      <div class="kpi-value" id="kpiPedidoTotal">$0</div>
+      <div class="kpi-sub" id="kpiSkuCount">0 SKUs propuestos</div>
+    </div>
+  </div>
+
+  <div class="section-label">Oportunidades de Negociación</div>
+  <p class="neg-intro">Cuando dos laboratorios ofrecen el mismo principio activo, el sistema lo detecta automáticamente y te muestra dónde tienes palanca para pedir mejor precio — o simplemente cambiarte.</p>
+  <div class="negotiation-grid" id="negotiationGrid"></div>
+
+  <div class="section-label">Propuesta de pedido</div>
+  <div class="coverage-row">
+    <span class="coverage-label">Comprar para cubrir:</span>
+    <button class="chip coverage-chip" data-days="30">30 días</button>
+    <button class="chip coverage-chip active" data-days="60">60 días</button>
+    <button class="chip coverage-chip" data-days="180">180 días</button>
+    <span class="coverage-note">La cantidad sugerida se recalcula según la rotación de cada producto y el horizonte elegido</span>
+  </div>
+  <div class="filter-row">
+    <button class="chip active" data-filter="all">Todos (18)</button>
+    <button class="chip" data-filter="urgent">🔴 Urgente (4)</button>
+    <button class="chip" data-filter="opp">🟢 Oportunidad (5)</button>
+    <button class="chip" data-filter="watch">🟡 Vigilar (3)</button>
+    <button class="chip" data-filter="alt">🔄 Alternativas (4)</button>
+    <div class="search-box">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8A8272" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="searchInput" placeholder="Buscar producto o lab...">
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table id="priceTable">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Precio nuevo</th>
+          <th>Variación</th>
+          <th>Stock actual</th>
+          <th>Rotación</th>
+          <th>Próx. vencimiento</th>
+          <th>Estado</th>
+          <th>Cant. sugerida</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- rows injected by JS -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="summary-bar">
+    <div class="summary-left">
+      <div class="label">Total propuesta de pedido (14 SKUs)</div>
+      <div class="value" id="totalValue">$2.847.600 <span>· 5 laboratorios</span></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="showToast('📄 Lista exportada a Excel (simulado)')">Exportar a Excel</button>
+      <button class="btn btn-primary" onclick="showToast('✅ Orden de compra generada y lista para enviar')">Generar orden de compra</button>
+    </div>
+  </div>
+
+  <div class="section-label">Consulta a tu Analista</div>
+  <div class="chat-panel">
+    <div class="chat-header">
+      <div class="chat-header-left">
+        <div class="chat-avatar">QF</div>
+        <div class="chat-title">Analista Senior de Compras
+          <div class="sub2">Conoce el estado completo del pedido de esta semana</div>
+        </div>
+      </div>
+      <span class="chat-badge">● IA en vivo</span>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg assistant">Hola Don Patricio 👋 Ya revisé las 5 listas de esta semana y las crucé con su stock. Pregúnteme por cualquier producto, laboratorio o alerta y le doy el análisis.</div>
+    </div>
+    <div class="chat-suggestions">
+      <button class="suggestion-chip" onclick="askSuggestion('¿Qué me conviene pedir de Losartán esta semana?')">¿Qué pedir de Losartán?</button>
+      <button class="suggestion-chip" onclick="askSuggestion('¿Cuánto debería pedir si quiero cubrirme 180 días?')">¿Y si cubro 180 días?</button>
+      <button class="suggestion-chip" onclick="askSuggestion('¿Qué proveedor me conviene presionar esta semana para bajar precio?')">¿A quién presiono esta semana?</button>
+      <button class="suggestion-chip" onclick="askSuggestion('¿Qué productos debería priorizar por vencimiento?')">Priorizar por vencimiento</button>
+    </div>
+    <div class="chat-input-row">
+      <input type="text" id="chatInput" placeholder="Pregúntale a tu analista sobre un producto, laboratorio o alerta..." onkeypress="if(event.key==='Enter') sendChat()">
+      <button class="chat-send" onclick="sendChat()" id="sendBtn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="footnote">PLO Compras Informadas · Prototipo funcional con datos simulados · Fase 1</div>
+
+</div>
+
+<div class="toast" id="toast"><span class="ic">●</span><span id="toastMsg"></span></div>
+
+<script>
+const data = [
+  { name:"Losartán 50mg x30", lab:"Laboratorio Chile", price:4890, prevPrice:4520, stock:8, rotation:"42 u/mes", rotUnits:42, venc:"12 días", vencClass:"soon", status:"urgent", molecule:"Losartán 50mg" },
+  { name:"Metformina 850mg x30", lab:"Laboratorio Chile", price:3210, prevPrice:3400, stock:120, rotation:"18 u/mes", rotUnits:18, venc:"6 meses", vencClass:"far", status:"opp" },
+  { name:"Atorvastatina 20mg x30", lab:"Laboratorio Chile", price:5670, prevPrice:5670, stock:35, rotation:"22 u/mes", rotUnits:22, venc:"4 meses", vencClass:"far", status:"normal", molecule:"Atorvastatina 20mg" },
+  { name:"Omeprazol 20mg x14", lab:"Saval", price:2140, prevPrice:2380, stock:15, rotation:"55 u/mes", rotUnits:55, venc:"9 días", vencClass:"soon", status:"urgent", molecule:"Omeprazol 20mg" },
+  { name:"Paracetamol 500mg x20", lab:"Saval", price:990, prevPrice:1050, stock:200, rotation:"90 u/mes", rotUnits:90, venc:"8 meses", vencClass:"far", status:"opp" },
+  { name:"Ibuprofeno 400mg x20", lab:"Saval", price:1450, prevPrice:1450, stock:60, rotation:"30 u/mes", rotUnits:30, venc:"5 meses", vencClass:"far", status:"normal" },
+  { name:"Amoxicilina 500mg x21", lab:"Andrómaco", price:3980, prevPrice:3650, stock:6, rotation:"38 u/mes", rotUnits:38, venc:"3 semanas", vencClass:"soon", status:"urgent" },
+  { name:"Simvastatina 20mg x30", lab:"Andrómaco", price:3320, prevPrice:3600, stock:48, rotation:"14 u/mes", rotUnits:14, venc:"7 meses", vencClass:"far", status:"opp" },
+  { name:"Losartán/HCT 50/12.5mg x30", lab:"Andrómaco", price:5210, prevPrice:5210, stock:22, rotation:"12 u/mes", rotUnits:12, venc:"5 meses", vencClass:"far", status:"watch" },
+  { name:"Clonazepam 2mg x30", lab:"Bagó", price:2870, prevPrice:3050, stock:33, rotation:"9 u/mes", rotUnits:9, venc:"6 meses", vencClass:"far", status:"opp" },
+  { name:"Sertralina 50mg x30", lab:"Bagó", price:4340, prevPrice:4340, stock:19, rotation:"16 u/mes", rotUnits:16, venc:"4 meses", vencClass:"far", status:"watch" },
+  { name:"Metoprolol 100mg x30", lab:"Bagó", price:2650, prevPrice:2490, stock:9, rotation:"20 u/mes", rotUnits:20, venc:"11 días", vencClass:"soon", status:"urgent", molecule:"Metoprolol 100mg" },
+  { name:"Enalapril 10mg x30", lab:"Mintlab", price:1980, prevPrice:2150, stock:70, rotation:"25 u/mes", rotUnits:25, venc:"6 meses", vencClass:"far", status:"opp" },
+  { name:"Levotiroxina 100mcg x50", lab:"Mintlab", price:3110, prevPrice:3110, stock:40, rotation:"11 u/mes", rotUnits:11, venc:"5 meses", vencClass:"far", status:"watch" },
+  { name:"Losartán 50mg x30", lab:"Saval", price:4390, prevPrice:4390, stock:8, rotation:"42 u/mes", rotUnits:42, venc:"12 días", vencClass:"soon", status:"alt", molecule:"Losartán 50mg" },
+  { name:"Omeprazol 20mg x14", lab:"Andrómaco", price:1980, prevPrice:1980, stock:15, rotation:"55 u/mes", rotUnits:55, venc:"9 días", vencClass:"soon", status:"alt", molecule:"Omeprazol 20mg" },
+  { name:"Atorvastatina 20mg x30", lab:"Bagó", price:5190, prevPrice:5190, stock:35, rotation:"22 u/mes", rotUnits:22, venc:"4 meses", vencClass:"far", status:"alt", molecule:"Atorvastatina 20mg" },
+  { name:"Metoprolol 100mg x30", lab:"Mintlab", price:2510, prevPrice:2510, stock:9, rotation:"20 u/mes", rotUnits:20, venc:"11 días", vencClass:"soon", status:"alt", molecule:"Metoprolol 100mg" },
+];
+
+let coveragePeriod = 60;
+
+function calcSuggestedQty(item, days){
+  if(item.status === "alt") return 0;
+  const daily = item.rotUnits / 30;
+  const qty = Math.round((daily * days) - item.stock);
+  return qty > 0 ? qty : 0;
+}
+
+const statusTag = {
+  urgent: '<span class="tag urgent">🔴 Urgente</span>',
+  opp: '<span class="tag opp">🟢 Oportunidad</span>',
+  watch: '<span class="tag watch">🟡 Vigilar</span>',
+  normal: '<span class="tag normal">— Normal</span>',
+  alt: '<span class="tag alt">🔄 Alternativa más barata</span>',
+};
+const rowFlagClass = { urgent:"flag-urgent", opp:"flag-opp", watch:"flag-watch", normal:"", alt:"flag-alt" };
+
+const fmt = n => "$" + n.toLocaleString("es-CL");
+
+function renderRows(filter="all", search=""){
+  const tbody = document.querySelector("#priceTable tbody");
+  tbody.innerHTML = "";
+  let visible = data.filter(d => filter === "all" || d.status === filter);
+  if(search.trim()){
+    const s = search.toLowerCase();
+    visible = visible.filter(d => d.name.toLowerCase().includes(s) || d.lab.toLowerCase().includes(s));
+  }
+  visible.forEach((d, i) => {
+    const delta = d.price - d.prevPrice;
+    const deltaPct = ((delta / d.prevPrice) * 100).toFixed(1);
+    const deltaClass = delta > 0 ? "up" : delta < 0 ? "down" : "flat";
+    const deltaLabel = delta === 0 ? "sin cambio" : (delta > 0 ? "▲ +" : "▼ ") + Math.abs(deltaPct) + "%";
+    const stockClass = d.stock < 20 ? "stock-low" : "stock-ok";
+    const suggestedQty = calcSuggestedQty(d, coveragePeriod);
+    const subtotal = d.price * suggestedQty;
+
+    const tr = document.createElement("tr");
+    tr.className = rowFlagClass[d.status];
+    tr.innerHTML = `
+      <td>
+        <div class="prod-name">${d.name}</div>
+        <div class="prod-lab">${d.lab}</div>
+      </td>
+      <td>
+        <div class="price">${fmt(d.price)}</div>
+        ${delta !== 0 ? `<div class="price-old">${fmt(d.prevPrice)}</div>` : ""}
+      </td>
+      <td><span class="delta ${deltaClass}">${deltaLabel}</span></td>
+      <td><span class="stock-pill ${stockClass}">${d.stock} u.</span></td>
+      <td class="mono" style="color:var(--text-dim); font-size:12px;">${d.rotation}</td>
+      <td><span class="venc ${d.vencClass}">${d.venc}</span></td>
+      <td>${statusTag[d.status]}</td>
+      <td><input type="number" class="qty-input" value="${suggestedQty}" data-idx="${i}" onchange="updateQty(this, ${d.price})"></td>
+      <td class="subtotal" data-price="${d.price}">${fmt(subtotal)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  updateTotal();
+}
+
+function updateQty(input, price){
+  const row = input.closest("tr");
+  const qty = parseInt(input.value) || 0;
+  row.querySelector(".subtotal").textContent = fmt(qty * price);
+  updateTotal();
+}
+
+function updateTotal(){
+  const subtotals = [...document.querySelectorAll(".subtotal")].map(el => {
+    const val = el.textContent.replace(/[$.]/g,"").replace(",",".");
+    return parseInt(val) || 0;
+  });
+  const total = subtotals.reduce((a,b) => a+b, 0);
+  const labs = new Set(data.map(d => d.lab)).size;
+  document.getElementById("totalValue").innerHTML = `${fmt(total)} <span>· ${labs} laboratorios</span>`;
+
+  const skuCount = [...document.querySelectorAll(".qty-input")].filter(inp => parseInt(inp.value) > 0).length;
+  const kpiTotal = document.getElementById("kpiPedidoTotal");
+  const kpiSku = document.getElementById("kpiSkuCount");
+  if(kpiTotal) kpiTotal.textContent = fmt(total);
+  if(kpiSku) kpiSku.textContent = `${skuCount} SKUs propuestos`;
+}
+
+document.querySelectorAll(".coverage-chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    document.querySelectorAll(".coverage-chip").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    coveragePeriod = parseInt(chip.dataset.days);
+    const activeFilter = document.querySelector(".chip.active[data-filter]").dataset.filter;
+    renderRows(activeFilter, document.getElementById("searchInput").value);
+  });
+});
+
+document.querySelectorAll(".chip[data-filter]").forEach(chip => {
+  chip.addEventListener("click", () => {
+    document.querySelectorAll(".chip[data-filter]").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    renderRows(chip.dataset.filter, document.getElementById("searchInput").value);
+  });
+});
+
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  const activeFilter = document.querySelector(".chip.active").dataset.filter;
+  renderRows(activeFilter, e.target.value);
+});
+
+function getNegotiationGroups(){
+  const groups = {};
+  data.forEach(d => {
+    if(!d.molecule) return;
+    if(!groups[d.molecule]) groups[d.molecule] = [];
+    groups[d.molecule].push(d);
+  });
+  return Object.entries(groups).filter(([_, offers]) => offers.length > 1);
+}
+
+function renderNegotiation(){
+  const container = document.getElementById("negotiationGrid");
+  container.innerHTML = "";
+  getNegotiationGroups().forEach(([molecule, offers]) => {
+    const sorted = [...offers].sort((a,b) => a.price - b.price);
+    const cheapest = sorted[0];
+    const priciest = sorted[sorted.length - 1];
+    const diff = priciest.price - cheapest.price;
+    const diffPct = ((diff / priciest.price) * 100).toFixed(1);
+
+    const card = document.createElement("div");
+    card.className = "negotiation-card";
+    card.innerHTML = `
+      <div class="neg-molecule">${molecule}</div>
+      <div class="neg-compare">
+        <div class="neg-lab cheap">
+          <div class="neg-lab-name">${cheapest.lab}</div>
+          <div class="neg-lab-price">${fmt(cheapest.price)}</div>
+        </div>
+        <div class="neg-arrow">vs</div>
+        <div class="neg-lab expensive">
+          <div class="neg-lab-name">${priciest.lab}</div>
+          <div class="neg-lab-price">${fmt(priciest.price)}</div>
+        </div>
+      </div>
+      <div class="neg-savings">Diferencia: <b>${fmt(diff)}</b> (${diffPct}%)</div>
+      <div class="neg-action">💡 Usa el precio de ${cheapest.lab} para negociar con ${priciest.lab}, o cambia el pedido a ${cheapest.lab}.</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function triggerManualUpload(){
+  document.getElementById("manualUploadInput").click();
+}
+
+function handleManualUpload(e){
+  const file = e.target.files[0];
+  if(!file) return;
+
+  const ext = file.name.split(".").pop().toLowerCase();
+  if(ext !== "pdf" && ext !== "docx"){
+    showToast("⚠️ Solo se aceptan archivos PDF o DOCX");
+    e.target.value = "";
+    return;
+  }
+
+  const grid = document.getElementById("ingestaGrid");
+  const uploadCard = document.getElementById("uploadCard");
+  const displayName = file.name.length > 22 ? file.name.slice(0, 19) + "…" : file.name;
+  const cardId = "manual-" + Date.now();
+
+  const card = document.createElement("div");
+  card.className = "lab-card progress";
+  card.id = cardId;
+  card.innerHTML = `
+    <div class="lab-name">${displayName}</div>
+    <div class="lab-status"><span class="status-icon"></span> LEYENDO ${ext.toUpperCase()}...</div>
+    <div class="lab-meta">carga manual</div>
+  `;
+  grid.insertBefore(card, uploadCard);
+  e.target.value = "";
+  showToast(`📄 ${file.name} recibido — analizando con IA...`);
+
+  setTimeout(() => {
+    const cardEl = document.getElementById(cardId);
+    if(!cardEl) return;
+    const productCount = Math.floor(Math.random() * 25) + 12;
+    cardEl.className = "lab-card done";
+    cardEl.innerHTML = `
+      <div class="lab-name">${displayName}</div>
+      <div class="lab-status"><span class="status-icon"></span> PROCESADO</div>
+      <div class="lab-meta"><b>${productCount}</b> productos · carga manual</div>
+    `;
+    showToast("✅ Lista procesada y cruzada contra su stock");
+  }, 2200);
+}
+
+function showToast(msg){
+  const toast = document.getElementById("toast");
+  document.getElementById("toastMsg").textContent = msg;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 3200);
+}
+
+function askSuggestion(q){
+  document.getElementById("chatInput").value = q;
+  sendChat();
+}
+
+async function sendChat(){
+  const input = document.getElementById("chatInput");
+  const question = input.value.trim();
+  if(!question) return;
+  input.value = "";
+  const sendBtn = document.getElementById("sendBtn");
+  sendBtn.disabled = true;
+
+  const messagesEl = document.getElementById("chatMessages");
+
+  const userMsg = document.createElement("div");
+  userMsg.className = "msg user";
+  userMsg.textContent = question;
+  messagesEl.appendChild(userMsg);
+
+  const loadingEl = document.createElement("div");
+  loadingEl.className = "msg-loading";
+  loadingEl.innerHTML = "<span></span><span></span><span></span>";
+  messagesEl.appendChild(loadingEl);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  try{
+    const contextData = data.map(d => {
+      const suggestedQty = calcSuggestedQty(d, coveragePeriod);
+      return `${d.name} (${d.lab}): precio nuevo $${d.price.toLocaleString("es-CL")} (antes $${d.prevPrice.toLocaleString("es-CL")}), stock actual ${d.stock} u., rotación ${d.rotation}, vence en ${d.venc}, cantidad sugerida para cubrir ${coveragePeriod} días: ${suggestedQty} u., estado: ${d.status}`;
+    }).join("\n");
+
+    const negotiationData = getNegotiationGroups().map(([molecule, offers]) => {
+      const sorted = [...offers].sort((a,b) => a.price - b.price);
+      const cheapest = sorted[0], priciest = sorted[sorted.length - 1];
+      return `${molecule}: más barato en ${cheapest.lab} ($${cheapest.price.toLocaleString("es-CL")}) vs. ${priciest.lab} ($${priciest.price.toLocaleString("es-CL")}), diferencia de $${(priciest.price - cheapest.price).toLocaleString("es-CL")}`;
+    }).join("\n") || "No hay equivalencias detectadas esta semana.";
+
+    const systemPrompt = `Eres el Analista Senior de Compras de PLO Droguería, una distribuidora farmacéutica B2B en Chile. Le hablas directamente a Don Patricio Leiva, el encargado de compras. Tu tono es profesional, directo y cercano, como un colega de confianza, no como un chatbot genérico. Usa pesos chilenos (formato $X.XXX) y sé concreto: da recomendaciones accionables, no solo datos.
+
+Estos son los datos de la propuesta de pedido de esta semana (lunes 17 de agosto 2026), ya cruzados contra stock. Don Patricio seleccionó cubrir stock para los próximos ${coveragePeriod} días, así que las cantidades sugeridas ya están calculadas para ese horizonte (rotación mensual proyectada menos el stock actual):
+
+${contextData}
+
+Además, estas son las equivalencias detectadas esta semana entre laboratorios que ofrecen el mismo principio activo — úsalas cuando te pregunten sobre negociación, qué proveedor presionar, o dónde conviene cambiarse:
+
+${negotiationData}
+
+Responde la pregunta de Don Patricio usando SOLO estos datos. Sé breve (máximo 4-5 líneas), directo, y si corresponde sugiere una acción concreta. Puedes usar **negrita** para resaltar números o nombres de productos clave.`;
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-6",
+        max_tokens: 1000,
+        messages: [
+          { role: "user", content: `${systemPrompt}\n\nPregunta: ${question}` }
+        ]
+      })
+    });
+
+    const resData = await response.json();
+    const textBlocks = (resData.content || []).filter(b => b.type === "text").map(b => b.text);
+    const answer = textBlocks.join("\n") || "No pude generar una respuesta esta vez, intenta de nuevo.";
+
+    loadingEl.remove();
+    const aiMsg = document.createElement("div");
+    aiMsg.className = "msg assistant";
+    aiMsg.innerHTML = answer.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/\n/g, "<br>");
+    messagesEl.appendChild(aiMsg);
+  }catch(err){
+    loadingEl.remove();
+    const errMsg = document.createElement("div");
+    errMsg.className = "msg assistant";
+    errMsg.textContent = "Hubo un problema consultando al analista. Intenta de nuevo en unos segundos.";
+    messagesEl.appendChild(errMsg);
+  }
+
+  sendBtn.disabled = false;
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+renderRows();
+renderNegotiation();
+
+const tourSteps = [
+  { target:"header", icon:"👋", title:"Bienvenido, Don Patricio", desc:"Esta es su plataforma de Compras Informadas — pensada para darle toda la información al alcance de la mano, sin quitarle el criterio con el que ya compra bien. Le voy a mostrar, uno por uno, dónde está cada función — toma menos de un minuto." },
+  { target:".ingesta-grid", icon:"📥", title:"Ingesta automática de listas", desc:"Cada semana el sistema lee los PDF de precios que le mandan sus laboratorios y extrae los productos automáticamente. Si algún laboratorio se atrasa o le manda un DOCX, puede subirlo usted mismo con el botón '+'." },
+  { target:".kpi-grid", icon:"📊", title:"Resumen de la semana", desc:"De un vistazo ve cuántos productos se analizaron, cuántas alertas de stock bajo hay, y cuánto ahorro potencial se detectó." },
+  { target:".negotiation-grid", icon:"🤝", title:"Oportunidades de Negociación", desc:"Cuando dos laboratorios venden lo mismo, se lo mostramos lado a lado con la diferencia exacta — su argumento listo para negociar mejor precio." },
+  { target:".coverage-row", icon:"📅", title:"Comprar para cubrir 30, 60 o 180 días", desc:"Elija el horizonte y la cantidad sugerida de cada producto se recalcula sola, según qué tan rápido rota y cuánto le queda en bodega." },
+  { target:".table-wrap", icon:"📋", title:"Propuesta de pedido", desc:"Revise la tabla, ajuste las cantidades si quiere, y confirme. Puede filtrar por urgencia, oportunidad, o buscar un producto puntual." },
+  { target:".chat-panel", icon:"🤖", title:"Su Analista Senior de Compras", desc:"Pregúntele directamente — \"¿qué me conviene pedir de Losartán?\", \"¿a quién le presiono esta semana?\" — y responde al instante con el análisis completo." },
+];
+let tourIndex = 0;
+
+function positionTourStep(){
+  const step = tourSteps[tourIndex];
+  const el = document.querySelector(step.target);
+  const spotlight = document.getElementById("tourSpotlight");
+  const cardWrap = document.getElementById("tourCardWrap");
+
+  if(!el){
+    spotlight.classList.remove("visible");
+    cardWrap.style.top = "50%";
+    cardWrap.style.left = "50%";
+    cardWrap.style.transform = "translate(-50%,-50%)";
+    cardWrap.classList.add("visible");
+    return;
+  }
+
+  el.scrollIntoView({ behavior:"smooth", block:"center" });
+
+  setTimeout(() => {
+    const rect = el.getBoundingClientRect();
+    const pad = 10;
+    spotlight.style.top = (rect.top - pad) + "px";
+    spotlight.style.left = (rect.left - pad) + "px";
+    spotlight.style.width = (rect.width + pad*2) + "px";
+    spotlight.style.height = (rect.height + pad*2) + "px";
+    spotlight.classList.add("visible");
+
+    const cardEl = cardWrap.querySelector(".tour-card");
+    const cardHeight = cardEl.offsetHeight || 260;
+    const cardWidth = cardEl.offsetWidth || 340;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    let top;
+    if(spaceBelow > cardHeight + 30){
+      top = rect.bottom + pad + 14;
+    } else if(spaceAbove > cardHeight + 30){
+      top = rect.top - cardHeight - pad - 14;
+    } else {
+      top = Math.max(16, (window.innerHeight - cardHeight) / 2);
+    }
+
+    let left = rect.left + rect.width/2 - cardWidth/2;
+    left = Math.max(16, Math.min(left, window.innerWidth - cardWidth - 16));
+
+    cardWrap.style.transform = "none";
+    cardWrap.style.top = top + "px";
+    cardWrap.style.left = left + "px";
+    cardWrap.classList.add("visible");
+  }, 380);
+}
+
+function renderTourStep(){
+  const step = tourSteps[tourIndex];
+  document.getElementById("tourSpotlight").classList.remove("visible");
+  document.getElementById("tourCardWrap").classList.remove("visible");
+  document.getElementById("tourCount").textContent = `Paso ${tourIndex + 1} de ${tourSteps.length}`;
+  document.getElementById("tourIcon").textContent = step.icon;
+  document.getElementById("tourTitle").textContent = step.title;
+  document.getElementById("tourDesc").textContent = step.desc;
+  document.getElementById("tourDots").innerHTML = tourSteps.map((_, i) =>
+    `<div class="tour-dot ${i === tourIndex ? "active" : ""}"></div>`
+  ).join("");
+  document.getElementById("tourPrevBtn").style.visibility = tourIndex === 0 ? "hidden" : "visible";
+  document.getElementById("tourNextBtn").textContent = tourIndex === tourSteps.length - 1 ? "Comenzar" : "Siguiente";
+  positionTourStep();
+}
+
+function startTour(){
+  tourIndex = 0;
+  document.getElementById("tourOverlay").classList.add("show");
+  renderTourStep();
+}
+
+function tourNext(){
+  if(tourIndex < tourSteps.length - 1){
+    tourIndex++;
+    renderTourStep();
+  } else {
+    closeTour();
+  }
+}
+
+function tourPrev(){
+  if(tourIndex > 0){
+    tourIndex--;
+    renderTourStep();
+  }
+}
+
+function closeTour(){
+  document.getElementById("tourOverlay").classList.remove("show");
+  document.getElementById("tourSpotlight").classList.remove("visible");
+  document.getElementById("tourCardWrap").classList.remove("visible");
+}
+
+window.addEventListener("resize", () => {
+  if(document.getElementById("tourOverlay").classList.contains("show")){
+    positionTourStep();
+  }
+});
+
+function doLogin(){
+  document.getElementById("loginScreen").classList.add("hidden");
+  setTimeout(startTour, 500);
+}
+</script>
+
+</body>
+</html>

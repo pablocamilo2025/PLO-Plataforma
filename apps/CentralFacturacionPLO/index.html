@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Central de Facturación PLO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0B1512;
+  --bg-2:#0E1B17;
+  --panel:rgba(255,255,255,.035);
+  --panel-2:rgba(255,255,255,.055);
+  --line:rgba(110,231,183,.14);
+  --line-2:rgba(255,255,255,.08);
+  --mint:#6EE7B7;
+  --emerald:#34D399;
+  --teal:#2DD4BF;
+  --amber:#FBBF24;
+  --coral:#FB7185;
+  --txt:#E9F5F0;
+  --txt-2:#9DB8AE;
+  --txt-3:#6B857C;
+  --radius:14px;
+  --mono:'IBM Plex Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);color:var(--txt);
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:14px;line-height:1.55;
+  min-height:100vh;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+.orb{position:fixed;border-radius:50%;filter:blur(90px);opacity:.16;pointer-events:none;z-index:0}
+.orb-1{width:520px;height:520px;background:var(--emerald);top:-180px;left:-120px;animation:drift 28s ease-in-out infinite}
+.orb-2{width:420px;height:420px;background:var(--teal);bottom:-160px;right:-100px;animation:drift 34s ease-in-out infinite reverse}
+@keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,-40px)}}
+@media (prefers-reduced-motion:reduce){.orb{animation:none}*{transition:none!important;animation:none!important}}
+
+.app{position:relative;z-index:1;display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+
+/* ── sidebar ── */
+.side{border-right:1px solid var(--line-2);padding:22px 16px;display:flex;flex-direction:column;gap:26px;background:rgba(11,21,18,.6);backdrop-filter:blur(10px)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--mint),var(--teal));display:grid;place-items:center;color:#062018;font-family:'Archivo';font-weight:800;font-size:13px;letter-spacing:-.5px;flex-shrink:0}
+.brand-txt strong{display:block;font-family:'Archivo';font-size:13px;font-weight:700;letter-spacing:-.3px;line-height:1.2}
+.brand-txt span{font-size:10.5px;color:var(--txt-3);letter-spacing:.08em;text-transform:uppercase}
+.nav-lbl{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--txt-3);margin-bottom:8px;padding-left:10px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{
+  all:unset;cursor:pointer;display:flex;align-items:center;gap:10px;
+  padding:9px 11px;border-radius:9px;font-size:13.5px;color:var(--txt-2);
+  transition:background .16s,color .16s;
+}
+.nav button:hover{background:var(--panel);color:var(--txt)}
+.nav button.on{background:rgba(110,231,183,.11);color:var(--mint);font-weight:500}
+.nav button:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.nav .ico{width:16px;text-align:center;font-size:14px;opacity:.85}
+.nav .tag{margin-left:auto;font-family:var(--mono);font-size:10px;padding:1px 6px;border-radius:20px;background:rgba(251,191,36,.14);color:var(--amber)}
+.side-foot{margin-top:auto;border-top:1px solid var(--line-2);padding-top:14px;display:flex;align-items:center;gap:9px}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--panel-2);border:1px solid var(--line);display:grid;place-items:center;font-family:'Archivo';font-weight:700;font-size:11px;color:var(--mint)}
+.side-foot div p{font-size:12.5px;font-weight:500}
+.side-foot div span{font-size:10.5px;color:var(--txt-3)}
+
+/* ── main ── */
+main{padding:26px 30px 60px;min-width:0}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:26px}
+h1{font-family:'Archivo';font-size:26px;font-weight:700;letter-spacing:-.7px;line-height:1.15}
+.top p{color:var(--txt-2);font-size:13px;margin-top:4px}
+.env{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;padding:6px 11px;border-radius:20px;border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.08);color:var(--amber)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ── kpis ── */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:12px;margin-bottom:24px}
+.kpi{
+  all:unset;cursor:pointer;text-align:left;
+  border:1px solid var(--line-2);border-radius:var(--radius);padding:15px 16px;
+  background:var(--panel);transition:border-color .18s,transform .18s,background .18s;
+  position:relative;overflow:hidden;
+}
+.kpi:hover{border-color:var(--line);transform:translateY(-2px);background:var(--panel-2)}
+.kpi:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.kpi.on{border-color:rgba(110,231,183,.42);background:rgba(110,231,183,.07)}
+.kpi .k-lbl{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--txt-3);margin-bottom:9px}
+.kpi .k-val{font-family:'Archivo';font-size:29px;font-weight:700;letter-spacing:-1px;line-height:1}
+.kpi .k-sub{font-size:11.5px;color:var(--txt-2);margin-top:5px}
+.kpi .bar{position:absolute;left:0;top:0;bottom:0;width:3px}
+.b-amber{background:var(--amber)}.b-teal{background:var(--teal)}.b-mint{background:var(--mint)}.b-emerald{background:var(--emerald)}.b-coral{background:var(--coral)}
+
+/* ── toolbar ── */
+.bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.search{flex:1;min-width:210px;position:relative}
+.search input{
+  width:100%;background:var(--panel);border:1px solid var(--line-2);border-radius:10px;
+  padding:9px 12px 9px 34px;color:var(--txt);font-family:inherit;font-size:13px;
+}
+.search input:focus{outline:none;border-color:rgba(110,231,183,.4)}
+.search input::placeholder{color:var(--txt-3)}
+.search .si{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--txt-3);font-size:13px}
+.chip{
+  all:unset;cursor:pointer;font-size:12.5px;padding:7px 13px;border-radius:20px;
+  border:1px solid var(--line-2);color:var(--txt-2);transition:all .16s;white-space:nowrap;
+}
+.chip:hover{border-color:var(--line);color:var(--txt)}
+.chip.on{background:rgba(110,231,183,.13);border-color:rgba(110,231,183,.4);color:var(--mint);font-weight:500}
+.chip:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+
+/* ── table ── */
+.tw{border:1px solid var(--line-2);border-radius:var(--radius);overflow:hidden;background:var(--panel)}
+.tscroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:820px}
+thead th{
+  text-align:left;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--txt-3);font-weight:500;padding:11px 14px;border-bottom:1px solid var(--line-2);
+  background:rgba(255,255,255,.02);white-space:nowrap;
+}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.045);cursor:pointer;transition:background .14s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(110,231,183,.045)}
+tbody tr:focus-visible{outline:2px solid var(--mint);outline-offset:-2px}
+td{padding:13px 14px;vertical-align:middle}
+.oid{font-family:var(--mono);font-size:12px;color:var(--mint)}
+.cli{font-weight:500;font-size:13.5px}
+.rut{font-family:var(--mono);font-size:11px;color:var(--txt-3);margin-top:2px}
+.amt{font-family:var(--mono);font-size:13px;text-align:right;white-space:nowrap}
+.pay{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--txt-2);white-space:nowrap}
+.pay .pi{font-size:13px}
+
+.tier{font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;letter-spacing:.04em;white-space:nowrap}
+.t-plat{background:rgba(226,232,240,.14);color:#CBD5E1;border:1px solid rgba(226,232,240,.2)}
+.t-oro{background:rgba(251,191,36,.14);color:var(--amber);border:1px solid rgba(251,191,36,.24)}
+.t-est{background:rgba(110,231,183,.12);color:var(--mint);border:1px solid rgba(110,231,183,.2)}
+
+.st{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;padding:4px 10px;border-radius:20px;white-space:nowrap;font-weight:500}
+.st i{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.s-esp{background:rgba(251,113,133,.12);color:#FDA4AF}.s-esp i{background:var(--coral)}
+.s-ver{background:rgba(251,191,36,.12);color:var(--amber)}.s-ver i{background:var(--amber)}
+.s-pag{background:rgba(45,212,191,.12);color:var(--teal)}.s-pag i{background:var(--teal)}
+.s-fac{background:rgba(52,211,153,.12);color:var(--emerald)}.s-fac i{background:var(--emerald)}
+.s-des{background:rgba(110,231,183,.12);color:var(--mint)}.s-des i{background:var(--mint)}
+.s-fin{background:rgba(255,255,255,.06);color:var(--txt-2)}.s-fin i{background:var(--txt-3)}
+
+.pipe{display:flex;gap:3px}
+.pipe span{width:18px;height:3px;border-radius:2px;background:rgba(255,255,255,.1)}
+.pipe span.f{background:var(--mint)}
+
+.empty{padding:52px 20px;text-align:center}
+.empty h3{font-family:'Archivo';font-size:16px;font-weight:600;margin-bottom:5px}
+.empty p{color:var(--txt-2);font-size:13px}
+
+/* ── drawer ── */
+.ov{position:fixed;inset:0;background:rgba(4,10,8,.68);backdrop-filter:blur(3px);z-index:60;opacity:0;pointer-events:none;transition:opacity .24s}
+.ov.on{opacity:1;pointer-events:auto}
+.dr{
+  position:fixed;top:0;right:0;bottom:0;width:min(560px,100vw);z-index:61;
+  background:var(--bg-2);border-left:1px solid var(--line);
+  transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;
+}
+.dr.on{transform:translateX(0)}
+.dr-h{padding:20px 22px 16px;border-bottom:1px solid var(--line-2);flex-shrink:0}
+.dr-h .r1{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.dr-h h2{font-family:'Archivo';font-size:19px;font-weight:700;letter-spacing:-.4px}
+.dr-h .sub{font-family:var(--mono);font-size:11.5px;color:var(--txt-3);margin-top:3px}
+.x{all:unset;cursor:pointer;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:var(--txt-2);font-size:17px;transition:background .15s;flex-shrink:0}
+.x:hover{background:var(--panel-2);color:var(--txt)}
+.x:focus-visible{outline:2px solid var(--mint)}
+.dr-b{flex:1;overflow-y:auto;padding:20px 22px 30px}
+.dr-b::-webkit-scrollbar{width:7px}
+.dr-b::-webkit-scrollbar-thumb{background:rgba(110,231,183,.2);border-radius:4px}
+
+.sec{margin-bottom:22px}
+.sec-t{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--txt-3);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.sec-t::after{content:'';flex:1;height:1px;background:var(--line-2)}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.f{background:var(--panel);border:1px solid var(--line-2);border-radius:10px;padding:10px 12px}
+.f .fl{font-size:10.5px;color:var(--txt-3);letter-spacing:.04em;text-transform:uppercase;margin-bottom:3px}
+.f .fv{font-size:13px;font-weight:500}
+.f .fv.m{font-family:var(--mono);font-size:12.5px}
+
+/* stepper */
+.step{display:flex;gap:0;margin-bottom:4px}
+.step-i{flex:1;position:relative;padding-top:22px;text-align:center}
+.step-i::before{content:'';position:absolute;top:6px;left:50%;width:100%;height:2px;background:rgba(255,255,255,.09)}
+.step-i:last-child::before{display:none}
+.step-i.d::before{background:var(--mint)}
+.step-i .n{position:absolute;top:0;left:50%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:var(--bg-2);border:2px solid rgba(255,255,255,.14);z-index:1}
+.step-i.d .n{border-color:var(--mint);background:var(--mint)}
+.step-i.c .n{border-color:var(--mint);background:var(--bg-2);box-shadow:0 0 0 3px rgba(110,231,183,.18)}
+.step-i .l{font-size:10.5px;color:var(--txt-3);line-height:1.3}
+.step-i.d .l,.step-i.c .l{color:var(--txt)}
+
+/* items */
+.it{border:1px solid var(--line-2);border-radius:10px;overflow:hidden}
+.it-r{display:grid;grid-template-columns:1fr auto;gap:10px;padding:11px 12px;border-bottom:1px solid rgba(255,255,255,.045)}
+.it-r:last-child{border-bottom:none}
+.it-r .nm{font-size:13px;font-weight:500;line-height:1.3}
+.it-r .mt{font-family:var(--mono);font-size:10.5px;color:var(--txt-3);margin-top:3px;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.frio{color:var(--teal);font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(45,212,191,.12);font-family:'Inter'}
+.it-r .pr{text-align:right;font-family:var(--mono);font-size:12.5px;white-space:nowrap}
+.it-r .pr small{display:block;color:var(--txt-3);font-size:10.5px;margin-top:2px}
+.tot{border-top:1px solid var(--line);padding:12px}
+.tot-r{display:flex;justify-content:space-between;font-size:12.5px;color:var(--txt-2);margin-bottom:5px}
+.tot-r.big{color:var(--txt);font-size:15px;font-weight:600;margin-top:9px;padding-top:9px;border-top:1px solid var(--line-2);margin-bottom:0}
+.tot-r span:last-child{font-family:var(--mono)}
+
+/* verify block */
+.vb{border:1px solid rgba(251,191,36,.28);background:rgba(251,191,36,.05);border-radius:12px;padding:14px}
+.vb.ok{border-color:rgba(45,212,191,.3);background:rgba(45,212,191,.05)}
+.vb h4{font-family:'Archivo';font-size:14px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:7px}
+.vb p{font-size:12.5px;color:var(--txt-2);margin-bottom:12px}
+.vb .ins{display:flex;gap:8px;flex-wrap:wrap}
+.vb input{
+  flex:1;min-width:150px;background:rgba(0,0,0,.24);border:1px solid var(--line-2);border-radius:9px;
+  padding:9px 11px;color:var(--txt);font-family:var(--mono);font-size:12.5px;
+}
+.vb input:focus{outline:none;border-color:rgba(251,191,36,.45)}
+.vb input::placeholder{color:var(--txt-3);font-family:'Inter'}
+
+/* comprobante */
+.cp{border:1px solid var(--line-2);border-radius:12px;overflow:hidden;background:var(--panel)}
+.cp-img{background:#0A120F;padding:14px;display:grid;place-items:center;border-bottom:1px solid var(--line-2)}
+.cp-img svg{width:100%;max-width:290px;height:auto;border-radius:8px;display:block}
+.cp-meta{padding:13px}
+.cp-r{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:12.5px}
+.cp-r span:first-child{color:var(--txt-2)}
+.cp-r span:last-child{font-family:var(--mono);font-size:12px}
+.cp-r.warn span:last-child{color:var(--amber)}
+.cp-r.warn span:first-child{color:var(--amber)}
+.alert{display:flex;gap:9px;align-items:flex-start;padding:11px 12px;border-radius:10px;background:rgba(251,113,133,.09);border:1px solid rgba(251,113,133,.28);margin-top:11px}
+.alert .aico{color:var(--coral);font-size:14px;flex-shrink:0;line-height:1.4}
+.alert p{font-size:12px;color:#FDBCC6;line-height:1.5}
+.nocp{padding:26px 18px;text-align:center;border:1px dashed var(--line-2);border-radius:12px;background:var(--panel)}
+.nocp h4{font-family:'Archivo';font-size:14px;font-weight:600;margin-bottom:5px}
+.nocp p{font-size:12.5px;color:var(--txt-2);max-width:330px;margin:0 auto 12px}
+.rj{margin-top:11px;padding-top:11px;border-top:1px solid var(--line-2)}
+.rj select{width:100%;background:rgba(0,0,0,.28);border:1px solid var(--line-2);border-radius:9px;padding:9px 11px;color:var(--txt);font-family:inherit;font-size:12.5px;margin-bottom:9px}
+.rj select:focus{outline:none;border-color:rgba(251,113,133,.45)}
+.b-rej{border:1px solid rgba(251,113,133,.4);color:#FDA4AF;background:rgba(251,113,133,.08)}
+.row-btn{display:flex;gap:8px;flex-wrap:wrap}
+
+/* buttons */
+.btn{
+  all:unset;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:9px 15px;border-radius:9px;font-size:13px;font-weight:600;font-family:inherit;
+  transition:transform .15s,opacity .15s,background .15s;white-space:nowrap;
+}
+.btn:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+.btn:hover:not(:disabled){transform:translateY(-1px)}
+.btn:disabled{opacity:.32;cursor:not-allowed}
+.b-pri{background:linear-gradient(135deg,var(--mint),var(--teal));color:#062018}
+.b-amb{background:var(--amber);color:#2A1B02}
+.b-gho{border:1px solid var(--line);color:var(--mint);background:rgba(110,231,183,.06)}
+.b-sm{padding:7px 12px;font-size:12px}
+.acts{display:flex;flex-direction:column;gap:9px}
+.act{display:flex;align-items:center;gap:11px;padding:12px;border:1px solid var(--line-2);border-radius:11px;background:var(--panel)}
+.act.rdy{border-color:rgba(110,231,183,.32);background:rgba(110,231,183,.05)}
+.act.done{opacity:.72}
+.act .ai{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:14px;background:var(--panel-2);flex-shrink:0}
+.act.rdy .ai{background:rgba(110,231,183,.14);color:var(--mint)}
+.act.done .ai{background:rgba(52,211,153,.14);color:var(--emerald)}
+.act .at{flex:1;min-width:0}
+.act .at strong{display:block;font-size:13px;font-weight:600}
+.act .at span{font-size:11.5px;color:var(--txt-3)}
+
+/* docs */
+.doc{display:flex;align-items:center;gap:11px;padding:11px 12px;border:1px solid var(--line-2);border-radius:10px;margin-bottom:8px;background:var(--panel)}
+.doc:last-child{margin-bottom:0}
+.doc .di{width:32px;height:32px;border-radius:8px;background:rgba(52,211,153,.12);color:var(--emerald);display:grid;place-items:center;font-family:var(--mono);font-size:10px;font-weight:600;flex-shrink:0}
+.doc .dt{flex:1;min-width:0}
+.doc .dt strong{display:block;font-size:12.5px;font-weight:500}
+.doc .dt span{font-family:var(--mono);font-size:10.5px;color:var(--txt-3)}
+.sii-ok{font-size:10px;font-family:var(--mono);padding:2px 7px;border-radius:4px;background:rgba(52,211,153,.14);color:var(--emerald);white-space:nowrap}
+
+/* log */
+.log{border-left:1px solid var(--line-2);padding-left:16px;margin-left:4px}
+.log-i{position:relative;padding-bottom:14px}
+.log-i:last-child{padding-bottom:0}
+.log-i::before{content:'';position:absolute;left:-20px;top:5px;width:7px;height:7px;border-radius:50%;background:var(--txt-3);border:2px solid var(--bg-2)}
+.log-i:first-child::before{background:var(--mint)}
+.log-i p{font-size:12.5px}
+.log-i span{font-family:var(--mono);font-size:10.5px;color:var(--txt-3)}
+
+/* ── sii modal ── */
+.mo{position:fixed;inset:0;z-index:80;display:none;place-items:center;padding:20px;background:rgba(4,10,8,.8);backdrop-filter:blur(4px)}
+.mo.on{display:grid}
+.mc{width:min(600px,100%);max-height:86vh;overflow-y:auto;background:var(--bg-2);border:1px solid var(--line);border-radius:16px;padding:24px}
+.mc h3{font-family:'Archivo';font-size:18px;font-weight:700;letter-spacing:-.3px;margin-bottom:5px}
+.mc .msub{font-size:12.5px;color:var(--txt-2);margin-bottom:18px}
+.code{
+  background:rgba(0,0,0,.4);border:1px solid var(--line-2);border-radius:10px;padding:13px;
+  font-family:var(--mono);font-size:11.5px;line-height:1.65;color:#B9E8D4;
+  overflow-x:auto;white-space:pre;margin-bottom:14px;
+}
+.code .k{color:var(--txt-3)}.code .s{color:var(--amber)}.code .n{color:var(--teal)}
+.lane{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;background:var(--panel);margin-bottom:7px;font-size:12.5px}
+.lane .ls{width:16px;text-align:center;font-family:var(--mono);font-size:12px;color:var(--txt-3)}
+.lane.act{background:rgba(251,191,36,.08);color:var(--amber)}
+.lane.ok{background:rgba(52,211,153,.08)}
+.lane.ok .ls{color:var(--emerald)}
+.spin{display:inline-block;width:11px;height:11px;border:2px solid rgba(251,191,36,.3);border-top-color:var(--amber);border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.res{border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.06);border-radius:11px;padding:14px;margin-bottom:16px}
+.res .rr{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;padding:4px 0}
+.res .rr span:first-child{color:var(--txt-2)}
+.res .rr span:last-child{font-family:var(--mono);font-size:12px}
+.mf{display:flex;gap:9px;justify-content:flex-end}
+
+/* toast */
+.tst{position:fixed;bottom:22px;left:50%;transform:translate(-50%,90px);z-index:99;display:flex;align-items:center;gap:10px;padding:12px 18px;border-radius:11px;background:#12241E;border:1px solid rgba(52,211,153,.35);font-size:13px;font-weight:500;transition:transform .3s cubic-bezier(.4,0,.2,1);box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.tst.on{transform:translate(-50%,0)}
+.tst .ti{color:var(--emerald);font-size:15px}
+
+/* views */
+.view{display:none}.view.on{display:block}
+.soon{border:1px dashed var(--line);border-radius:var(--radius);padding:50px 24px;text-align:center;background:var(--panel)}
+.soon h3{font-family:'Archivo';font-size:17px;font-weight:600;margin-bottom:6px}
+.soon p{color:var(--txt-2);font-size:13px;max-width:400px;margin:0 auto}
+
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .side{flex-direction:row;align-items:center;border-right:none;border-bottom:1px solid var(--line-2);padding:12px 16px;gap:16px;overflow-x:auto}
+  .nav-lbl,.side-foot{display:none}
+  .nav{flex-direction:row;gap:4px}
+  .nav button{white-space:nowrap;font-size:12.5px}
+  main{padding:20px 18px 50px}
+  h1{font-size:22px}
+  .grid2{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-mark">PLO</div>
+      <div class="brand-txt"><strong>Central de Facturación</strong><span>PLO Droguería</span></div>
+    </div>
+    <div>
+      <p class="nav-lbl">Operación</p>
+      <nav class="nav" id="nav">
+        <button class="on" data-v="ordenes"><span class="ico">▤</span> Órdenes de compra</button>
+        <button data-v="documentos"><span class="ico">◎</span> Documentos SII</button>
+        <button data-v="clientes"><span class="ico">◍</span> Clientes<span class="tag">fase 2</span></button>
+        <button data-v="reportes"><span class="ico">◔</span> Reportes<span class="tag">fase 2</span></button>
+      </nav>
+    </div>
+    <div class="side-foot">
+      <div class="avatar">JC</div>
+      <div><p>J. Cárdenas</p><span>Administrador</span></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="top">
+      <div>
+        <h1 id="vt">Órdenes de compra</h1>
+        <p id="vs">Verifica el pago, emite la factura y despacha — todo desde acá.</p>
+      </div>
+      <div class="env"><span class="dot"></span> Ambiente de certificación</div>
+    </div>
+
+    <!-- ORDENES -->
+    <section class="view on" id="v-ordenes">
+      <div class="kpis" id="kpis"></div>
+      <div class="bar">
+        <div class="search"><span class="si">⌕</span><input id="q" placeholder="Buscar por cliente, RUT u orden…"></div>
+        <button class="chip on" data-f="all">Todas</button>
+        <button class="chip" data-f="transferencia">Transferencia</button>
+        <button class="chip" data-f="khipu">Khipu</button>
+        <button class="chip" data-f="efectivo">Efectivo</button>
+      </div>
+      <div class="tw">
+        <div class="tscroll">
+          <table>
+            <thead><tr>
+              <th>Orden</th><th>Cliente</th><th>Tier</th><th>Pago</th>
+              <th>Estado</th><th>Avance</th><th style="text-align:right">Total</th>
+            </tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="none" style="display:none">
+          <h3>Sin órdenes en este filtro</h3>
+          <p>Cambia el filtro o limpia la búsqueda para ver el resto.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- DOCUMENTOS -->
+    <section class="view" id="v-documentos">
+      <div class="tw">
+        <div class="tscroll">
+          <table>
+            <thead><tr>
+              <th>Folio</th><th>Tipo</th><th>Cliente</th><th>Orden</th>
+              <th>Track ID</th><th>Estado SII</th><th style="text-align:right">Monto</th>
+            </tr></thead>
+            <tbody id="drows"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="dnone" style="display:none">
+          <h3>Aún no hay documentos emitidos</h3>
+          <p>Emite una factura desde una orden y aparecerá acá con su folio y Track ID.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="v-clientes">
+      <div class="soon"><h3>Gestión de clientes</h3><p>Alta de clientes, asignación de tier y límites de crédito. Queda para la fase siguiente, cuando el backend real esté en marcha.</p></div>
+    </section>
+    <section class="view" id="v-reportes">
+      <div class="soon"><h3>Reportes</h3><p>Ventas por tier, rotación de lotes, y libro de ventas cuadrado contra el RCV del SII. Fase siguiente.</p></div>
+    </section>
+  </main>
+</div>
+
+<div class="ov" id="ov"></div>
+<aside class="dr" id="dr" role="dialog" aria-modal="true" aria-labelledby="drTitle">
+  <div class="dr-h">
+    <div class="r1">
+      <div><h2 id="drTitle">—</h2><p class="sub" id="drSub">—</p></div>
+      <button class="x" id="drX" aria-label="Cerrar detalle">✕</button>
+    </div>
+  </div>
+  <div class="dr-b" id="drB"></div>
+</aside>
+
+<div class="mo" id="mo" role="dialog" aria-modal="true">
+  <div class="mc" id="mc"></div>
+</div>
+
+<div class="tst" id="tst"><span class="ti">✓</span><span id="tstT"></span></div>
+
+<script>
+const CLP = n => '$' + n.toLocaleString('es-CL');
+const IVA = .19;
+
+const FLOWS = {
+  Transferencia:['esperando_comp','por_verificar','pago_ok','facturada','preparacion','despachada'],
+  Khipu:['pago_ok','facturada','preparacion','despachada'],
+  Efectivo:['reservado','listo_retiro','pago_ok','facturada','entregada']
+};
+const LABELS = {
+  Transferencia:['Comprobante','Pago','Factura','Despacho','Guía','Envío'],
+  Khipu:['Pago','Factura','Despacho','Guía'],
+  Efectivo:['Reserva','Preparado','Pago','Factura','Entrega']
+};
+const META = {
+  esperando_comp:{l:'Esperando comprobante',c:'s-esp'},
+  por_verificar:{l:'Comprobante por revisar',c:'s-ver'},
+  reservado:{l:'Reservado 48 h',c:'s-esp'},
+  listo_retiro:{l:'Listo para retiro',c:'s-ver'},
+  pago_ok:{l:'Pago confirmado',c:'s-pag'},
+  facturada:{l:'Facturada',c:'s-fac'},
+  preparacion:{l:'En preparación',c:'s-des'},
+  despachada:{l:'Despachada',c:'s-fin'},
+  entregada:{l:'Entregada',c:'s-fin'}
+};
+const fl = o => FLOWS[o.pago];
+const fi = o => fl(o).indexOf(o.est);
+const TIER = {Platino:'t-plat',Oro:'t-oro',Estándar:'t-est'};
+
+let FOLIO_33 = 2418, FOLIO_52 = 883, TRACK = 5842190;
+
+const P = [
+  {sku:'PLO-1042',n:'Losartán 50mg · caja 30 comp',lote:'L24-8871',v:'2027-03',frio:false,pu:2190},
+  {sku:'PLO-2277',n:'Metformina 850mg · caja 60 comp',lote:'L25-1140',v:'2027-08',frio:false,pu:3480},
+  {sku:'PLO-3391',n:'Insulina glargina 100UI · vial',lote:'L24-5502',v:'2026-11',frio:true,pu:18900},
+  {sku:'PLO-4118',n:'Amoxicilina 500mg · caja 21 caps',lote:'L25-3308',v:'2027-01',frio:false,pu:1840},
+  {sku:'PLO-5023',n:'Atorvastatina 20mg · caja 30 comp',lote:'L24-9917',v:'2026-12',frio:false,pu:4250},
+  {sku:'PLO-6640',n:'Salbutamol inhalador 100mcg',lote:'L25-0761',v:'2027-05',frio:false,pu:5690},
+  {sku:'PLO-7205',n:'Vacuna influenza tetravalente',lote:'L25-2214',v:'2026-10',frio:true,pu:12400},
+  {sku:'PLO-8130',n:'Omeprazol 20mg · caja 28 caps',lote:'L24-6653',v:'2027-04',frio:false,pu:1520}
+];
+const it = (i,q,d=0) => ({...P[i],q,pu:Math.round(P[i].pu*(1-d))});
+
+let O = [
+  {id:'OC-2026-0165',cli:'Farmacia Belén Ltda.',rut:'76.432.109-8',tier:'Platino',con:'María Contreras',mail:'compras@fbelen.cl',dir:'Av. Providencia 1245, Providencia',fecha:'29 jul 2026 · 11:02',pago:'Transferencia',banco:'Banco de Chile',est:'esperando_comp',comp:null,
+   items:[it(2,6,.12),it(0,40,.12),it(4,15,.12)],docs:[],log:[{t:'29 jul · 11:02',x:'Orden recibida desde el portal'}]},
+
+  {id:'OC-2026-0164',cli:'Droguería Los Andes SpA',rut:'77.201.554-K',tier:'Oro',con:'Rodrigo Peña',mail:'rpena@dlandes.cl',dir:'Camino Melipilla 4420, Maipú',fecha:'29 jul 2026 · 09:41',pago:'Transferencia',banco:'BCI',est:'por_verificar',
+   comp:{arch:'transferencia-bci-0164.jpg',bancoOrig:'BCI',nOp:'41882094',fechaTrf:'29 jul 2026 · 09:38',declDelta:0,subido:'29 jul 2026 · 09:44'},
+   items:[it(1,50,.07),it(7,80,.07)],docs:[],log:[{t:'29 jul · 09:41',x:'Orden recibida desde el portal'},{t:'29 jul · 09:44',x:'Cliente subió comprobante desde el portal'}]},
+
+  {id:'OC-2026-0163',cli:'Farmacias Vida Sana',rut:'76.998.310-2',tier:'Estándar',con:'Carla Muñoz',mail:'carla@vidasana.cl',dir:'O\'Higgins 782, Rancagua',fecha:'29 jul 2026 · 08:15',pago:'Transferencia',banco:'Santander',est:'por_verificar',
+   comp:{arch:'comprobante-santander.png',bancoOrig:'Santander',nOp:'77390215',fechaTrf:'29 jul 2026 · 08:20',declDelta:-184000,subido:'29 jul 2026 · 08:26'},
+   items:[it(3,30),it(5,12)],docs:[],log:[{t:'29 jul · 08:15',x:'Orden recibida desde el portal'},{t:'29 jul · 08:26',x:'Cliente subió comprobante desde el portal'}]},
+
+  {id:'OC-2026-0162',cli:'Farmacia San Nicolás',rut:'76.110.487-5',tier:'Oro',con:'Ignacio Fuentes',mail:'ifuentes@fsn.cl',dir:'Balmaceda 331, Talca',fecha:'28 jul 2026 · 17:30',pago:'Transferencia',banco:'Banco Estado',est:'por_verificar',
+   comp:{arch:'transferencia-corregida.jpg',bancoOrig:'Banco Estado',nOp:'90114772',fechaTrf:'29 jul 2026 · 08:55',declDelta:0,subido:'29 jul 2026 · 09:01'},
+   items:[it(6,20,.07),it(2,4,.07)],docs:[],log:[{t:'28 jul · 17:30',x:'Orden recibida desde el portal'},{t:'28 jul · 18:12',x:'Cliente subió comprobante desde el portal'},{t:'28 jul · 19:40',x:'Comprobante rechazado — imagen ilegible'},{t:'29 jul · 09:01',x:'Cliente subió un comprobante nuevo'}]},
+
+  {id:'OC-2026-0161',cli:'Farmacia Del Puerto',rut:'76.339.771-4',tier:'Estándar',con:'Luis Arancibia',mail:'larancibia@fdelpuerto.cl',dir:'Blanco 1120, Valparaíso',fecha:'28 jul 2026 · 14:22',pago:'Transferencia',banco:'Banco de Chile',est:'esperando_comp',comp:null,rech:'No se encuentra el abono en la cartola',
+   items:[it(4,25),it(3,40)],docs:[],log:[{t:'28 jul · 14:22',x:'Orden recibida desde el portal'},{t:'28 jul · 15:05',x:'Cliente subió comprobante desde el portal'},{t:'28 jul · 16:48',x:'Comprobante rechazado — no se encuentra el abono en la cartola'}]},
+
+  {id:'OC-2026-0155',cli:'Farmacia Santa Elena',rut:'76.702.881-3',tier:'Estándar',con:'Ana Vergara',mail:'avergara@fsantaelena.cl',dir:'Retiro en bodega PLO',fecha:'29 jul 2026 · 10:18',pago:'Efectivo',banco:'—',est:'reservado',comp:null,vence:'31 jul 2026 · 10:18',horas:34,
+   items:[it(0,35),it(7,50)],docs:[],log:[{t:'29 jul · 10:18',x:'Orden reservada en el portal · retiro en bodega'}]},
+
+  {id:'OC-2026-0154',cli:'Botica Central Maipú',rut:'77.019.336-6',tier:'Oro',con:'Jorge Salazar',mail:'jsalazar@boticacentral.cl',dir:'Retiro en bodega PLO',fecha:'28 jul 2026 · 12:40',pago:'Efectivo',banco:'—',est:'listo_retiro',comp:null,vence:'30 jul 2026 · 12:40',horas:9,
+   items:[it(5,18,.07),it(4,22,.07)],docs:[],log:[{t:'28 jul · 12:40',x:'Orden reservada en el portal · retiro en bodega'},{t:'28 jul · 16:05',x:'Pedido preparado y separado en bodega'}]},
+
+  {id:'OC-2026-0160',cli:'Farmacia San Nicolás',rut:'76.110.487-5',tier:'Oro',con:'Ignacio Fuentes',mail:'ifuentes@fsn.cl',dir:'Balmaceda 331, Talca',fecha:'28 jul 2026 · 16:35',pago:'Khipu',banco:'—',est:'pago_ok',comp:{kh:'KH-8841-77410299',bancoOrig:'Banco de Chile',acred:'28 jul 2026 · 16:36'},
+   items:[it(6,20,.07),it(2,4,.07)],docs:[],log:[{t:'28 jul · 16:35',x:'Orden recibida desde el portal'},{t:'28 jul · 16:36',x:'Pago acreditado por Khipu · KH-8841-77410299'}]},
+
+  {id:'OC-2026-0159',cli:'Distribuidora Salud Norte',rut:'77.845.223-1',tier:'Platino',con:'Paula Rivas',mail:'privas@saludnorte.cl',dir:'Baquedano 1580, Antofagasta',fecha:'28 jul 2026 · 11:20',pago:'Transferencia',banco:'Banco Estado',est:'pago_ok',
+   comp:{arch:'trf-saludnorte.jpg',bancoOrig:'Banco Estado',nOp:'88420190',fechaTrf:'28 jul 2026 · 11:35',declDelta:0,subido:'28 jul 2026 · 11:41',verif:'TRF-8842019'},
+   items:[it(0,120,.12),it(1,90,.12),it(7,150,.12)],docs:[],log:[{t:'28 jul · 11:20',x:'Orden recibida desde el portal'},{t:'28 jul · 11:41',x:'Cliente subió comprobante desde el portal'},{t:'28 jul · 14:05',x:'Abono confirmado en cartola — comp. TRF-8842019'}]},
+
+  {id:'OC-2026-0158',cli:'Farmacia Belén Ltda.',rut:'76.432.109-8',tier:'Platino',con:'María Contreras',mail:'compras@fbelen.cl',dir:'Av. Providencia 1245, Providencia',fecha:'27 jul 2026 · 15:48',pago:'Transferencia',banco:'Banco de Chile',est:'facturada',
+   comp:{arch:'trf-belen-0158.jpg',bancoOrig:'Banco de Chile',nOp:'88395510',fechaTrf:'27 jul 2026 · 16:02',declDelta:0,subido:'27 jul 2026 · 16:10',verif:'TRF-8839551'},
+   items:[it(4,25),it(3,40)],docs:[{tipo:33,folio:2417,track:5842188,monto:0}],log:[{t:'27 jul · 15:48',x:'Orden recibida desde el portal'},{t:'27 jul · 16:10',x:'Cliente subió comprobante desde el portal'},{t:'27 jul · 17:10',x:'Abono confirmado en cartola — comp. TRF-8839551'},{t:'28 jul · 09:02',x:'Factura 33 folio 2417 aceptada por el SII'}]},
+
+  {id:'OC-2026-0157',cli:'Red Farmacéutica Austral',rut:'77.556.902-9',tier:'Oro',con:'Fernanda Ojeda',mail:'fojeda@rfaustral.cl',dir:'Bulnes 640, Puerto Montt',fecha:'27 jul 2026 · 10:11',pago:'Transferencia',banco:'Scotiabank',est:'preparacion',
+   comp:{arch:'trf-austral.png',bancoOrig:'Scotiabank',nOp:'88370041',fechaTrf:'27 jul 2026 · 10:30',declDelta:0,subido:'27 jul 2026 · 10:38',verif:'TRF-8837004'},
+   items:[it(6,35,.07),it(5,28,.07),it(2,10,.07)],docs:[{tipo:33,folio:2416,track:5842185,monto:0}],log:[{t:'27 jul · 10:11',x:'Orden recibida desde el portal'},{t:'27 jul · 10:38',x:'Cliente subió comprobante desde el portal'},{t:'27 jul · 12:40',x:'Abono confirmado en cartola — comp. TRF-8837004'},{t:'27 jul · 13:15',x:'Factura 33 folio 2416 aceptada por el SII'},{t:'27 jul · 13:20',x:'Orden de despacho generada para bodega'}]},
+
+  {id:'OC-2026-0156',cli:'Farmacia Belén Ltda.',rut:'76.432.109-8',tier:'Platino',con:'María Contreras',mail:'compras@fbelen.cl',dir:'Av. Providencia 1245, Providencia',fecha:'26 jul 2026 · 09:30',pago:'Khipu',banco:'—',est:'despachada',comp:{kh:'KH-8839-77409112',bancoOrig:'Santander',acred:'26 jul 2026 · 09:31'},
+   items:[it(0,60,.12),it(7,100,.12)],docs:[{tipo:33,folio:2414,track:5842171,monto:0},{tipo:52,folio:882,track:5842174,monto:0}],log:[{t:'26 jul · 09:30',x:'Orden recibida desde el portal'},{t:'26 jul · 09:31',x:'Pago acreditado por Khipu · KH-8839-77409112'},{t:'26 jul · 10:15',x:'Factura 33 folio 2414 aceptada por el SII'},{t:'26 jul · 10:18',x:'Orden de despacho generada para bodega'},{t:'26 jul · 15:40',x:'Guía 52 folio 882 aceptada por el SII'}]},
+
+  {id:'OC-2026-0153',cli:'Farmacia Los Aromos',rut:'76.884.215-7',tier:'Estándar',con:'Patricia Soto',mail:'psoto@losaromos.cl',dir:'Retiro en bodega PLO',fecha:'25 jul 2026 · 11:05',pago:'Efectivo',banco:'—',est:'entregada',comp:{efectivo:180000,vuelto:0,recibe:'Patricia Soto',hora:'26 jul 2026 · 09:50'},
+   items:[it(4,20),it(0,30)],docs:[{tipo:33,folio:2413,track:5842168,monto:0}],log:[{t:'25 jul · 11:05',x:'Orden reservada en el portal · retiro en bodega'},{t:'25 jul · 15:20',x:'Pedido preparado y separado en bodega'},{t:'26 jul · 09:50',x:'Pago en efectivo recibido en bodega'},{t:'26 jul · 09:52',x:'Factura 33 folio 2413 aceptada por el SII'},{t:'26 jul · 09:55',x:'Mercadería entregada en bodega · retirada por el cliente'}]}
+];
+
+const neto = o => o.items.reduce((s,i)=>s+i.pu*i.q,0);
+const iva  = o => Math.round(neto(o)*IVA);
+const tot  = o => neto(o)+iva(o);
+O.forEach(o=>o.docs.forEach(d=>{if(!d.monto)d.monto=tot(o)}));
+
+let filt='all', sel=null, kpiF=null;
+
+/* ── KPIs ── */
+function kpis(){
+  const K = [
+    {id:'esperando_comp',l:'Sin comprobante',v:O.filter(o=>o.est==='esperando_comp').length,s:'El cliente aún no lo sube',b:'b-coral'},
+    {id:'por_verificar',l:'Por revisar',v:O.filter(o=>o.est==='por_verificar').length,s:'Comprobante recibido',b:'b-amber'},
+    {id:'retiro',l:'Retiros pendientes',v:O.filter(o=>['reservado','listo_retiro'].includes(o.est)).length,s:'Efectivo · pago al retirar',b:'b-emerald'},
+    {id:'pago_ok',l:'Por facturar',v:O.filter(o=>o.est==='pago_ok').length,s:'Pago confirmado',b:'b-teal'},
+    {id:'despacho',l:'Por despachar',v:O.filter(o=>['facturada','preparacion'].includes(o.est)).length,s:'Facturadas, falta guía',b:'b-mint'}
+  ];
+  document.getElementById('kpis').innerHTML = K.map(k=>`
+    <button class="kpi ${kpiF===k.id?'on':''}" data-k="${k.id}">
+      <span class="bar ${k.b}"></span>
+      <p class="k-lbl">${k.l}</p>
+      <p class="k-val">${k.v}</p>
+      <p class="k-sub">${k.s}</p>
+    </button>`).join('');
+  document.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>{
+    kpiF = kpiF===b.dataset.k?null:b.dataset.k; render();
+  });
+}
+
+/* ── tabla ── */
+function render(){
+  kpis();
+  const q = document.getElementById('q').value.toLowerCase().trim();
+  let L = O.filter(o=>{
+    if(filt!=='all' && o.pago.toLowerCase()!==filt) return false;
+    if(kpiF==='despacho' && !['facturada','preparacion'].includes(o.est)) return false;
+    if(kpiF==='retiro' && !['reservado','listo_retiro'].includes(o.est)) return false;
+    if(kpiF && !['despacho','retiro'].includes(kpiF) && o.est!==kpiF) return false;
+    if(q && !(o.cli+o.rut+o.id).toLowerCase().includes(q)) return false;
+    return true;
+  });
+  document.getElementById('none').style.display = L.length?'none':'block';
+  document.getElementById('rows').innerHTML = L.map(o=>{
+    const i = fi(o), m = META[o.est], F = fl(o);
+    const ic = {Transferencia:'⇄',Khipu:'⚡',Efectivo:'◉'}[o.pago];
+    return `<tr tabindex="0" data-id="${o.id}">
+      <td><span class="oid">${o.id}</span></td>
+      <td><div class="cli">${o.cli}</div><div class="rut">${o.rut}</div></td>
+      <td><span class="tier ${TIER[o.tier]}">${o.tier}</span></td>
+      <td><div class="pay"><span class="pi">${ic}</span>${o.pago}</div></td>
+      <td><span class="st ${m.c}"><i></i>${m.l}</span></td>
+      <td><div class="pipe">${F.map((_,k)=>`<span class="${k<=i?'f':''}"></span>`).join('')}</div></td>
+      <td class="amt">${CLP(tot(o))}</td>
+    </tr>`;
+  }).join('');
+  document.querySelectorAll('#rows tr').forEach(r=>{
+    r.onclick = ()=>open(r.dataset.id);
+    r.onkeydown = e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open(r.dataset.id)}};
+  });
+  docsView();
+}
+
+function docsView(){
+  const D = [];
+  O.forEach(o=>o.docs.forEach(d=>D.push({...d,o})));
+  D.sort((a,b)=>b.folio-a.folio);
+  document.getElementById('dnone').style.display = D.length?'none':'block';
+  document.getElementById('drows').innerHTML = D.map(d=>`<tr style="cursor:default">
+    <td><span class="oid">${d.folio}</span></td>
+    <td>${d.tipo===33?'Factura electrónica':'Guía de despacho'} <span class="rut" style="display:inline;margin-left:4px">DTE ${d.tipo}</span></td>
+    <td><div class="cli">${d.o.cli}</div><div class="rut">${d.o.rut}</div></td>
+    <td><span class="oid">${d.o.id}</span></td>
+    <td><span class="rut" style="font-size:11.5px">${d.track}</span></td>
+    <td><span class="sii-ok">Aceptado</span></td>
+    <td class="amt">${CLP(d.monto)}</td>
+  </tr>`).join('');
+}
+
+/* ── drawer ── */
+const ov=document.getElementById('ov'), dr=document.getElementById('dr');
+function open(id){
+  sel = O.find(o=>o.id===id);
+  document.getElementById('drTitle').textContent = sel.cli;
+  document.getElementById('drSub').textContent = `${sel.id} · ${sel.fecha}`;
+  drawer();
+  ov.classList.add('on'); dr.classList.add('on');
+  document.getElementById('drX').focus();
+}
+function close(){ov.classList.remove('on');dr.classList.remove('on');sel=null}
+ov.onclick=close; document.getElementById('drX').onclick=close;
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('mo').classList.contains('on'))closeMo();else close()}});
+
+function receipt(o){
+  const c=o.comp, decl=tot(o)+(c.declDelta||0);
+  const row=(y,l,v)=>`<text x="16" y="${y}" font-family="Inter,sans-serif" font-size="8.5" fill="#6B7B75">${l}</text><text x="284" y="${y}" font-family="Inter,sans-serif" font-size="8.5" font-weight="500" fill="#22332D" text-anchor="end">${v}</text>`;
+  return `<svg viewBox="0 0 300 212" xmlns="http://www.w3.org/2000/svg" role="img"><title>Comprobante subido por el cliente</title>
+    <rect width="300" height="212" rx="8" fill="#F6F9F8"/>
+    <path d="M0 8a8 8 0 018-8h284a8 8 0 018 8v26H0z" fill="#1B3A5C"/>
+    <text x="14" y="22" font-family="Inter,sans-serif" font-size="10.5" font-weight="600" fill="#FFFFFF">${c.bancoOrig}</text>
+    <text x="286" y="22" font-family="Inter,sans-serif" font-size="7.5" fill="#A9C4DC" text-anchor="end">Comprobante de transferencia</text>
+    <circle cx="150" cy="58" r="13" fill="#DCF3E8"/>
+    <path d="M144 58l4.5 4.5L157 54" stroke="#1D9E75" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="150" y="88" font-family="Inter,sans-serif" font-size="9.5" font-weight="600" fill="#3B4F48" text-anchor="middle">Transferencia realizada</text>
+    <text x="150" y="110" font-family="Inter,sans-serif" font-size="17" font-weight="700" fill="#12211C" text-anchor="middle">${CLP(decl)}</text>
+    <line x1="16" y1="124" x2="284" y2="124" stroke="#DDE5E2" stroke-width="1"/>
+    ${row(142,'Destinatario','PLO Droguería SpA')}
+    ${row(160,'RUT','77.123.456-7')}
+    ${row(178,'N° operación',c.nOp)}
+    ${row(196,'Fecha',c.fechaTrf)}
+  </svg>`;
+}
+
+const RAZONES=['No se encuentra el abono en la cartola','El monto no coincide con la orden','Imagen ilegible o incompleta','Los datos no corresponden a esta orden','La transferencia está pendiente, no acreditada'];
+
+function payBlock(o){
+  const i=fi(o);
+
+  if(o.pago==='Khipu') return `<div class="vb ok">
+    <h4>Acreditado por Khipu</h4>
+    <p>Khipu confirmó la transferencia al momento de la compra. No pasa por revisión manual ni por cartola.</p>
+    <div class="grid2">
+      <div class="f"><p class="fl">ID Khipu</p><p class="fv m">${o.comp.kh}</p></div>
+      <div class="f"><p class="fl">Banco origen</p><p class="fv">${o.comp.bancoOrig}</p></div>
+      <div class="f" style="grid-column:1/-1"><p class="fl">Acreditado</p><p class="fv m">${o.comp.acred}</p></div>
+    </div></div>`;
+
+  if(o.pago==='Efectivo'){
+    if(i>=2) return `<div class="vb ok">
+      <h4>Pagado en efectivo al retirar</h4>
+      <p>El pago se recibió en bodega al momento de la entrega.</p>
+      <div class="grid2">
+        <div class="f"><p class="fl">Efectivo recibido</p><p class="fv m">${CLP(o.comp.efectivo)}</p></div>
+        <div class="f"><p class="fl">Vuelto</p><p class="fv m">${CLP(o.comp.vuelto)}</p></div>
+        <div class="f"><p class="fl">Recibido de</p><p class="fv">${o.comp.recibe}</p></div>
+        <div class="f"><p class="fl">Hora</p><p class="fv m" style="font-size:11.5px">${o.comp.hora}</p></div>
+      </div></div>`;
+
+    const urg = o.horas<=12;
+    return `<div class="vb ${urg?'':''}" style="${urg?'border-color:rgba(251,113,133,.35);background:rgba(251,113,133,.05)':''}">
+      <h4>Reserva con pago al retirar</h4>
+      <p>${o.est==='reservado'
+        ? `El pedido está reservado y aún no se prepara en bodega. Se cobra ${CLP(tot(o))} en efectivo cuando el cliente venga a retirar.`
+        : `El pedido está preparado y separado. Falta que el cliente venga a pagar y retirar.`}</p>
+      <div class="grid2" style="margin-bottom:11px">
+        <div class="f"><p class="fl">Vence la reserva</p><p class="fv m" style="font-size:11.5px;${urg?'color:var(--coral)':''}">${o.vence}</p></div>
+        <div class="f"><p class="fl">Quedan</p><p class="fv" style="${urg?'color:var(--coral)':''}">${o.horas} horas</p></div>
+      </div>
+      ${urg?`<div class="alert"><span class="aico">!</span><p>La reserva vence en menos de 12 horas. Si el cliente no retira, hay que liberar el stock y avisarle.</p></div>`:''}
+      <div class="rj" style="border:none;padding:0;margin-top:11px">
+        <button class="btn b-rej b-sm" id="bLib" style="width:100%">Liberar reserva y devolver stock</button>
+      </div>
+    </div>`;
+  }
+
+  if(o.est==='esperando_comp') return `<div class="nocp">
+    <h4>El cliente aún no sube el comprobante</h4>
+    <p>${o.rech?`El comprobante anterior fue rechazado: ${o.rech.toLowerCase()}. Se le pidió subir uno nuevo.`:`La orden quedó registrada y el portal le está pidiendo el comprobante de la transferencia por ${CLP(tot(o))}.`}</p>
+    <button class="btn b-gho b-sm" id="bRec">Reenviar recordatorio al cliente</button></div>`;
+
+  const c=o.comp, decl=tot(o)+(c.declDelta||0), dif=decl-tot(o);
+
+  if(i>=2) return `<div class="cp">
+    <div class="cp-img">${receipt(o)}</div>
+    <div class="cp-meta">
+      <div class="cp-r"><span>Monto declarado</span><span>${CLP(decl)}</span></div>
+      <div class="cp-r"><span>N° operación</span><span>${c.nOp}</span></div>
+      <div class="cp-r"><span>Abono en cartola</span><span style="color:var(--emerald)">${c.verif}</span></div>
+      <div class="cp-r"><span>Banco de PLO</span><span>${o.banco}</span></div>
+    </div></div>`;
+
+  return `<div class="cp">
+    <div class="cp-img">${receipt(o)}</div>
+    <div class="cp-meta">
+      <div class="cp-r"><span>Subido</span><span>${c.subido}</span></div>
+      <div class="cp-r"><span>Archivo</span><span style="font-size:11px">${c.arch}</span></div>
+      <div class="cp-r"><span>Total de la orden</span><span>${CLP(tot(o))}</span></div>
+      <div class="cp-r ${dif?'warn':''}"><span>Monto declarado</span><span>${CLP(decl)}${dif?` (${dif>0?'+':''}${CLP(dif)})`:''}</span></div>
+      ${dif?`<div class="alert"><span class="aico">!</span><p>El monto declarado no cuadra con la orden. Faltan ${CLP(Math.abs(dif))}. Revisa si el cliente descontó algo o pagó de menos antes de aprobar.</p></div>`:''}
+    </div>
+  </div>
+  <div class="vb" style="margin-top:11px">
+    <h4>Confirma el abono en la cartola</h4>
+    <p>El comprobante es lo que declara el cliente. Busca el abono real por ${CLP(tot(o))} en la cartola de ${o.banco} antes de aprobar.</p>
+    <div class="ins"><input id="cmp" placeholder="N° de abono en la cartola"><button class="btn b-amb" id="bVer">Confirmar abono</button></div>
+    <div class="rj">
+      <select id="rz"><option value="">Rechazar el comprobante por…</option>${RAZONES.map(r=>`<option>${r}</option>`).join('')}</select>
+      <button class="btn b-rej b-sm" id="bRej" style="width:100%">Rechazar y pedir uno nuevo</button>
+    </div>
+  </div>`;
+}
+
+const STEPS=['Comprobante','Pago','Factura','Despacho','Guía','Envío'];
+function actsEnvio(o,i,hasF,hasG,pagado){
+  const iOD = fl(o).indexOf('preparacion');
+  return `
+    <div class="act ${hasF?'done':pagado?'rdy':''}">
+      <div class="ai">${hasF?'✓':'33'}</div>
+      <div class="at"><strong>Emitir factura electrónica</strong><span>${hasF?`Folio ${o.docs.find(d=>d.tipo===33).folio} · aceptada por el SII`:pagado?'Listo para emitir · DTE 33':'Requiere el pago confirmado'}</span></div>
+      ${hasF?'':`<button class="btn b-pri b-sm" id="bFac" ${pagado?'':'disabled'}>Emitir</button>`}
+    </div>
+    <div class="act ${i>=iOD?'done':hasF?'rdy':''}">
+      <div class="ai">${i>=iOD?'✓':'◫'}</div>
+      <div class="at"><strong>Generar orden de despacho</strong><span>${i>=iOD?'Entregada a bodega':hasF?'Listo para generar · documento interno':'Requiere la factura emitida'}</span></div>
+      ${i>=iOD?'':`<button class="btn b-gho b-sm" id="bOD" ${hasF?'':'disabled'}>Generar</button>`}
+    </div>
+    <div class="act ${hasG?'done':i>=iOD?'rdy':''}">
+      <div class="ai">${hasG?'✓':'52'}</div>
+      <div class="at"><strong>Emitir guía de despacho</strong><span>${hasG?`Folio ${o.docs.find(d=>d.tipo===52).folio} · aceptada por el SII`:i>=iOD?`Listo para emitir · DTE 52 ref. folio ${hasF?o.docs.find(d=>d.tipo===33).folio:'—'}`:'Requiere la orden de despacho'}</span></div>
+      ${hasG?'':`<button class="btn b-pri b-sm" id="bGui" ${i>=iOD?'':'disabled'}>Emitir</button>`}
+    </div>`;
+}
+
+function actsRetiro(o,i,hasF){
+  return `
+    <div class="act ${i>=1?'done':'rdy'}">
+      <div class="ai">${i>=1?'✓':'◫'}</div>
+      <div class="at"><strong>Preparar pedido en bodega</strong><span>${i>=1?'Preparado y separado':'Separar la mercadería y dejarla lista para el retiro'}</span></div>
+      ${i>=1?'':`<button class="btn b-gho b-sm" id="bPrep">Preparar</button>`}
+    </div>
+    <div class="act ${i>=2?'done':i===1?'rdy':''}">
+      <div class="ai">${i>=2?'✓':'◉'}</div>
+      <div class="at"><strong>Registrar pago en efectivo</strong><span>${i>=2?`${CLP(o.comp.efectivo)} recibidos en bodega`:i===1?`Cobrar ${CLP(tot(o))} al momento del retiro`:'Requiere el pedido preparado'}</span></div>
+      ${i>=2?'':`<button class="btn b-amb b-sm" id="bEfe" ${i===1?'':'disabled'}>Registrar</button>`}
+    </div>
+    <div class="act ${hasF?'done':i>=2?'rdy':''}">
+      <div class="ai">${hasF?'✓':'33'}</div>
+      <div class="at"><strong>Emitir factura electrónica</strong><span>${hasF?`Folio ${o.docs.find(d=>d.tipo===33).folio} · aceptada por el SII`:i>=2?'Listo para emitir · DTE 33':'Requiere el pago recibido'}</span></div>
+      ${hasF?'':`<button class="btn b-pri b-sm" id="bFac" ${i>=2?'':'disabled'}>Emitir</button>`}
+    </div>
+    <div class="act ${i>=4?'done':hasF?'rdy':''}">
+      <div class="ai">${i>=4?'✓':'◈'}</div>
+      <div class="at"><strong>Marcar como entregado</strong><span>${i>=4?'Retirado por el cliente':hasF?'El cliente se lleva la mercadería con su factura':'Requiere la factura emitida'}</span></div>
+      ${i>=4?'':`<button class="btn b-pri b-sm" id="bEnt" ${hasF?'':'disabled'}>Entregar</button>`}
+    </div>
+    <div class="act" style="opacity:.55">
+      <div class="ai">52</div>
+      <div class="at"><strong>Guía de despacho</strong><span>No corresponde · en retiro la factura ampara el traslado</span></div>
+    </div>`;
+}
+
+function drawer(){
+  const o=sel, i=fi(o), F=fl(o), STEPS=LABELS[o.pago];
+  const hasF = o.docs.some(d=>d.tipo===33);
+  const hasG = o.docs.some(d=>d.tipo===52);
+  const pagado = o.pago==='Efectivo' ? i>=2 : i>=F.indexOf('pago_ok');
+  const retiro = o.pago==='Efectivo';
+
+  document.getElementById('drB').innerHTML = `
+  <div class="sec">
+    <div class="step">${STEPS.map((s,k)=>`<div class="step-i ${k<i?'d':k===i?'c':''}"><span class="n"></span><span class="l">${s}</span></div>`).join('')}</div>
+  </div>
+
+  <div class="sec">
+    <p class="sec-t">Cliente</p>
+    <div class="grid2">
+      <div class="f"><p class="fl">RUT</p><p class="fv m">${o.rut}</p></div>
+      <div class="f"><p class="fl">Tier</p><p class="fv">${o.tier}</p></div>
+      <div class="f"><p class="fl">Contacto</p><p class="fv">${o.con}</p></div>
+      <div class="f"><p class="fl">Correo</p><p class="fv" style="font-size:12px">${o.mail}</p></div>
+      <div class="f" style="grid-column:1/-1"><p class="fl">${retiro?'Modalidad':'Dirección de despacho'}</p><p class="fv">${retiro?'Retiro en bodega PLO · pago al retirar':o.dir}</p></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <p class="sec-t">Productos · ${o.items.length} líneas</p>
+    <div class="it">
+      ${o.items.map(x=>`<div class="it-r">
+        <div><p class="nm">${x.n}</p>
+        <p class="mt"><span>${x.sku}</span><span>Lote ${x.lote}</span><span>Vence ${x.v}</span>${x.frio?'<span class="frio">Cadena de frío</span>':''}</p></div>
+        <div class="pr">${CLP(x.pu*x.q)}<small>${x.q} × ${CLP(x.pu)}</small></div>
+      </div>`).join('')}
+      <div class="tot">
+        <div class="tot-r"><span>Neto</span><span>${CLP(neto(o))}</span></div>
+        <div class="tot-r"><span>IVA 19%</span><span>${CLP(iva(o))}</span></div>
+        <div class="tot-r big"><span>Total</span><span>${CLP(tot(o))}</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <p class="sec-t">Comprobante y pago</p>
+    ${payBlock(o)}
+  </div>
+
+  <div class="sec">
+    <p class="sec-t">Acciones</p>
+    <div class="acts">${retiro?actsRetiro(o,i,hasF):actsEnvio(o,i,hasF,hasG,pagado)}</div>
+  </div>
+
+  ${o.docs.length?`<div class="sec"><p class="sec-t">Documentos emitidos</p>
+    ${o.docs.map(d=>`<div class="doc"><div class="di">${d.tipo}</div>
+      <div class="dt"><strong>${d.tipo===33?'Factura electrónica':'Guía de despacho'} · folio ${d.folio}</strong><span>Track ID ${d.track}</span></div>
+      <span class="sii-ok">Aceptado</span></div>`).join('')}</div>`:''}
+
+  <div class="sec" style="margin-bottom:0">
+    <p class="sec-t">Historial</p>
+    <div class="log">${[...o.log].reverse().map(l=>`<div class="log-i"><p>${l.x}</p><span>${l.t}</span></div>`).join('')}</div>
+  </div>`;
+
+  const b1=document.getElementById('bVer'); if(b1) b1.onclick=verify;
+  const b5=document.getElementById('bRej'); if(b5) b5.onclick=reject;
+  const b7=document.getElementById('bPrep'); if(b7) b7.onclick=()=>{
+    sel.est='listo_retiro'; sel.log.push({t:stamp(),x:'Pedido preparado y separado en bodega'});
+    drawer(); render(); toast('Pedido listo para retiro');
+  };
+  const b8=document.getElementById('bEfe'); if(b8) b8.onclick=cash;
+  const b9=document.getElementById('bEnt'); if(b9) b9.onclick=()=>{
+    sel.est='entregada'; sel.log.push({t:stamp(),x:'Mercadería entregada en bodega · retirada por el cliente'});
+    drawer(); render(); toast('Entrega registrada');
+  };
+  const b10=document.getElementById('bLib'); if(b10) b10.onclick=()=>{
+    sel.log.push({t:stamp(),x:'Reserva liberada · stock devuelto al catálogo'});
+    toast('Reserva liberada · se avisó al cliente'); close(); render();
+  };
+  const b6=document.getElementById('bRec'); if(b6) b6.onclick=()=>{
+    sel.log.push({t:stamp(),x:'Recordatorio de comprobante enviado al cliente'});
+    drawer(); toast('Recordatorio enviado a '+sel.mail);
+  };
+  const b2=document.getElementById('bFac'); if(b2) b2.onclick=()=>sii(33);
+  const b3=document.getElementById('bOD');  if(b3) b3.onclick=od;
+  const b4=document.getElementById('bGui'); if(b4) b4.onclick=()=>sii(52);
+}
+
+function stamp(){return new Date().toLocaleString('es-CL',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).replace(',',' ·')}
+
+function cash(){
+  const o=sel, t=tot(o);
+  mc.innerHTML=`
+    <h3>Registrar pago en efectivo</h3>
+    <p class="msub">${o.cli} · ${o.id}</p>
+    <div class="res" style="border-color:var(--line-2);background:var(--panel);margin-bottom:16px">
+      <div class="rr"><span>Total a cobrar</span><span style="color:var(--mint);font-size:15px">${CLP(t)}</span></div>
+    </div>
+    <p class="sec-t">Efectivo recibido</p>
+    <input id="cEf" inputmode="numeric" placeholder="Monto que entrega el cliente" style="width:100%;background:rgba(0,0,0,.28);border:1px solid var(--line-2);border-radius:9px;padding:11px;color:var(--txt);font-family:var(--mono);font-size:14px;margin-bottom:10px">
+    <div id="cVu" style="min-height:44px"></div>
+    <p class="sec-t">Recibido de</p>
+    <input id="cRe" placeholder="Nombre de quien retira" value="${o.con}" style="width:100%;background:rgba(0,0,0,.28);border:1px solid var(--line-2);border-radius:9px;padding:11px;color:var(--txt);font-family:inherit;font-size:13px;margin-bottom:16px">
+    <div class="mf"><button class="btn b-gho b-sm" id="cCan">Cancelar</button><button class="btn b-amb b-sm" id="cOk" disabled>Registrar pago</button></div>`;
+  mo.classList.add('on');
+  const ef=document.getElementById('cEf'), vu=document.getElementById('cVu'), ok=document.getElementById('cOk');
+  ef.oninput=()=>{
+    const v=parseInt(ef.value.replace(/\D/g,''))||0;
+    const d=v-t;
+    ok.disabled = v<t;
+    vu.innerHTML = !v?'' : d>=0
+      ? `<div class="lane ok"><span class="ls">✓</span>Vuelto a entregar: <b style="margin-left:4px;font-family:var(--mono)">${CLP(d)}</b></div>`
+      : `<div class="lane" style="background:rgba(251,113,133,.09);color:#FDA4AF"><span class="ls">!</span>Faltan ${CLP(-d)} para completar el total</div>`;
+  };
+  ef.focus();
+  document.getElementById('cCan').onclick=closeMo;
+  ok.onclick=()=>{
+    const v=parseInt(ef.value.replace(/\D/g,''))||0;
+    o.comp={efectivo:v,vuelto:v-t,recibe:document.getElementById('cRe').value.trim()||o.con,hora:stamp()};
+    o.est='pago_ok'; o.log.push({t:stamp(),x:'Pago en efectivo recibido en bodega'});
+    closeMo(); drawer(); render(); toast('Pago en efectivo registrado');
+  };
+}
+
+function verify(){
+  const v = document.getElementById('cmp').value.trim();
+  if(!v){document.getElementById('cmp').focus();return toast('Ingresa el n° de abono de la cartola','!')}
+  sel.comp.verif=v; sel.est='pago_ok'; delete sel.rech;
+  sel.log.push({t:stamp(),x:`Abono confirmado en cartola — comp. ${v}`});
+  drawer(); render(); toast('Pago confirmado');
+}
+function reject(){
+  const r = document.getElementById('rz').value;
+  if(!r){document.getElementById('rz').focus();return toast('Elige el motivo del rechazo','!')}
+  sel.est='esperando_comp'; sel.rech=r; sel.comp=null;
+  sel.log.push({t:stamp(),x:`Comprobante rechazado — ${r.toLowerCase()}`});
+  drawer(); render(); toast('Comprobante rechazado · se avisó al cliente');
+}
+function od(){
+  sel.est='preparacion';
+  sel.log.push({t:stamp(),x:'Orden de despacho generada para bodega'});
+  drawer(); render(); toast('Orden de despacho generada');
+}
+
+/* ── consola SII ── */
+const mo=document.getElementById('mo'), mc=document.getElementById('mc');
+function closeMo(){mo.classList.remove('on')}
+function sii(tipo){
+  const o=sel, es33=tipo===33;
+  const refF = es33?null:o.docs.find(d=>d.tipo===33).folio;
+  const payload = es33
+   ? `{
+  <span class="k">"tipoDTE"</span>: <span class="n">33</span>,
+  <span class="k">"receptor"</span>: {
+    <span class="k">"rut"</span>: <span class="s">"${o.rut}"</span>,
+    <span class="k">"razonSocial"</span>: <span class="s">"${o.cli}"</span>,
+    <span class="k">"direccion"</span>: <span class="s">"${o.dir}"</span>
+  },
+  <span class="k">"detalle"</span>: [${o.items.map(x=>`
+    { <span class="k">"nombre"</span>: <span class="s">"${x.n.split(' · ')[0]}"</span>, <span class="k">"cantidad"</span>: <span class="n">${x.q}</span>, <span class="k">"precio"</span>: <span class="n">${x.pu}</span> }`).join(',')}
+  ],
+  <span class="k">"montoNeto"</span>: <span class="n">${neto(o)}</span>,
+  <span class="k">"iva"</span>: <span class="n">${iva(o)}</span>,
+  <span class="k">"montoTotal"</span>: <span class="n">${tot(o)}</span>
+}`
+   : `{
+  <span class="k">"tipoDTE"</span>: <span class="n">52</span>,
+  <span class="k">"indTraslado"</span>: <span class="n">1</span>,
+  <span class="k">"receptor"</span>: { <span class="k">"rut"</span>: <span class="s">"${o.rut}"</span> },
+  <span class="k">"referencia"</span>: [
+    { <span class="k">"tipoDoc"</span>: <span class="n">33</span>, <span class="k">"folioRef"</span>: <span class="n">${refF}</span> }
+  ],
+  <span class="k">"detalle"</span>: [${o.items.map(x=>`
+    { <span class="k">"nombre"</span>: <span class="s">"${x.n.split(' · ')[0]}"</span>, <span class="k">"lote"</span>: <span class="s">"${x.lote}"</span>, <span class="k">"cantidad"</span>: <span class="n">${x.q}</span> }`).join(',')}
+  ]
+}`;
+
+  const lanes = ['Firmando XML con el certificado','Timbrando con folio CAF','Enviando al SII','Esperando acuse'];
+  mc.innerHTML = `
+    <h3>${es33?'Emitir factura electrónica':'Emitir guía de despacho'}</h3>
+    <p class="msub">DTE tipo ${tipo} · ${o.cli} · ${o.id}${refF?` · referencia folio ${refF}`:''}</p>
+    <p class="sec-t">Datos que se envían al facturador</p>
+    <div class="code">${payload}</div>
+    <p class="sec-t">Proceso</p>
+    <div id="lanes">${lanes.map((l,k)=>`<div class="lane" id="ln${k}"><span class="ls">${k+1}</span>${l}</div>`).join('')}</div>
+    <div id="out"></div>
+    <div class="mf" id="mf"><button class="btn b-gho b-sm" id="mCan">Cancelar</button><button class="btn b-pri b-sm" id="mGo">Emitir ahora</button></div>`;
+  mo.classList.add('on');
+  document.getElementById('mCan').onclick=closeMo;
+  document.getElementById('mGo').onclick=()=>run(tipo,lanes.length);
+}
+
+function run(tipo,n){
+  document.getElementById('mf').style.display='none';
+  let k=0;
+  const tick=()=>{
+    if(k>0){const p=document.getElementById('ln'+(k-1));p.className='lane ok';p.querySelector('.ls').textContent='✓'}
+    if(k<n){
+      const c=document.getElementById('ln'+k);c.className='lane act';
+      c.querySelector('.ls').innerHTML='<span class="spin"></span>';
+      k++; setTimeout(tick,700);
+    } else done(tipo);
+  };
+  tick();
+}
+
+function done(tipo){
+  const o=sel, es33=tipo===33;
+  const folio = es33?++FOLIO_33:++FOLIO_52;
+  const track = ++TRACK;
+  o.docs.push({tipo,folio,track,monto:tot(o)});
+  if(es33){o.est='facturada';o.log.push({t:stamp(),x:`Factura 33 folio ${folio} aceptada por el SII`})}
+  else{o.est='despachada';o.log.push({t:stamp(),x:`Guía 52 folio ${folio} aceptada por el SII`})}
+
+  document.getElementById('out').innerHTML = `
+    <div class="res" style="margin-top:14px">
+      <div class="rr"><span>Folio asignado</span><span style="color:var(--mint)">${folio}</span></div>
+      <div class="rr"><span>Track ID SII</span><span>${track}</span></div>
+      <div class="rr"><span>Estado</span><span style="color:var(--emerald)">Aceptado</span></div>
+      <div class="rr"><span>Monto total</span><span>${CLP(tot(o))}</span></div>
+    </div>
+    <p style="font-size:12.5px;color:var(--txt-2);margin-bottom:14px">El PDF quedó guardado en la orden y se envió a ${o.mail}.</p>
+    <div class="mf"><button class="btn b-pri b-sm" id="mOk">Listo</button></div>`;
+  document.getElementById('mOk').onclick=()=>{closeMo();drawer();render();toast(es33?`Factura emitida · folio ${folio}`:`Guía emitida · folio ${folio}`)};
+  document.getElementById('mOk').focus();
+}
+
+/* ── toast ── */
+let tt;
+function toast(m,ic='✓'){
+  const t=document.getElementById('tst');
+  document.getElementById('tstT').textContent=m;
+  t.querySelector('.ti').textContent=ic;
+  t.classList.add('on'); clearTimeout(tt);
+  tt=setTimeout(()=>t.classList.remove('on'),2800);
+}
+
+/* ── nav + filtros ── */
+const VT={ordenes:['Órdenes de compra','Verifica el pago, emite la factura y despacha — todo desde acá.'],
+ documentos:['Documentos SII','Todos los DTE emitidos con su folio, Track ID y estado.'],
+ clientes:['Clientes','Alta de clientes y asignación de tier.'],
+ reportes:['Reportes','Ventas, rotación de lotes y cuadratura con el SII.']};
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#nav button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.getElementById('v-'+b.dataset.v).classList.add('on');
+  document.getElementById('vt').textContent=VT[b.dataset.v][0];
+  document.getElementById('vs').textContent=VT[b.dataset.v][1];
+});
+document.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('[data-f]').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); filt=b.dataset.f; render();
+});
+document.getElementById('q').oninput=render;
+render();
+</script>
+</body>
+</html>
