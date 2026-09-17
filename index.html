@@ -3,307 +3,77 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="PLO Farma está preparando una nueva plataforma de abastecimiento para farmacias.">
-  <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#07100d">
-  <title>PLO Farma — Muy pronto</title>
+  <meta name="description" content="PLO Droguería: compra productos farmacéuticos de liquidación con trazabilidad, margen visible y despacho ágil.">
+  <meta name="theme-color" content="#12372b">
+  <title>PLO Droguería — Más margen para tu farmacia</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root {
-      color-scheme: dark;
-      --bg: #06100c;
-      --surface: rgba(12, 28, 22, .68);
-      --line: rgba(158, 218, 195, .15);
-      --text: #edf8f3;
-      --muted: #91aaa0;
-      --mint: #7fe8c3;
-      --green: #17b27c;
-      --sky: #8fd3f4;
-    }
-
-    * { box-sizing: border-box; }
-
-    html, body { min-height: 100%; }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      overflow-x: hidden;
-      color: var(--text);
-      background:
-        radial-gradient(circle at 15% 10%, rgba(23, 178, 124, .20), transparent 34rem),
-        radial-gradient(circle at 88% 85%, rgba(143, 211, 244, .11), transparent 30rem),
-        var(--bg);
-      font-family: Inter, system-ui, sans-serif;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      opacity: .16;
-      background-image:
-        linear-gradient(var(--line) 1px, transparent 1px),
-        linear-gradient(90deg, var(--line) 1px, transparent 1px);
-      background-size: 54px 54px;
-      mask-image: radial-gradient(circle at center, black, transparent 82%);
-    }
-
-    .orb {
-      position: fixed;
-      width: 410px;
-      aspect-ratio: 1;
-      border: 1px solid rgba(127, 232, 195, .10);
-      border-radius: 50%;
-      pointer-events: none;
-    }
-
-    .orb::before,
-    .orb::after {
-      content: "";
-      position: absolute;
-      inset: 13%;
-      border: inherit;
-      border-radius: inherit;
-    }
-
-    .orb::after { inset: 29%; }
-    .orb-left { top: -250px; left: -170px; }
-    .orb-right { right: -220px; bottom: -250px; }
-
-    .page {
-      position: relative;
-      z-index: 1;
-      width: min(1180px, calc(100% - 40px));
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      margin: 0 auto;
-      padding: 30px 0;
-    }
-
-    header,
-    footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 22px;
-    }
-
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 13px;
-      font-family: Archivo, sans-serif;
-      font-size: 1rem;
-      font-weight: 760;
-      letter-spacing: -.02em;
-    }
-
-    .brand-mark {
-      width: 42px;
-      height: 42px;
-      display: grid;
-      place-items: center;
-      border: 1px solid rgba(127, 232, 195, .46);
-      border-radius: 12px;
-      color: var(--mint);
-      background: rgba(23, 178, 124, .10);
-      box-shadow: inset 0 0 22px rgba(127, 232, 195, .06);
-      font: 600 .78rem "IBM Plex Mono", monospace;
-    }
-
-    .status {
-      display: inline-flex;
-      align-items: center;
-      gap: 9px;
-      color: var(--muted);
-      font: 600 .63rem "IBM Plex Mono", monospace;
-      letter-spacing: .11em;
-      text-transform: uppercase;
-    }
-
-    .status::before {
-      content: "";
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 0 6px rgba(23, 178, 124, .11);
-      animation: pulse 2.4s ease-in-out infinite;
-    }
-
-    main {
-      flex: 1;
-      display: grid;
-      grid-template-columns: minmax(0, 1.3fr) minmax(300px, .7fr);
-      gap: clamp(40px, 8vw, 110px);
-      align-items: center;
-      padding: 70px 0;
-    }
-
-    .eyebrow {
-      margin-bottom: 18px;
-      color: var(--mint);
-      font: 600 .7rem "IBM Plex Mono", monospace;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      max-width: 780px;
-      margin: 0;
-      font-family: Archivo, sans-serif;
-      font-size: clamp(3.2rem, 8vw, 7.4rem);
-      font-stretch: condensed;
-      font-weight: 820;
-      line-height: .88;
-      letter-spacing: -.065em;
-    }
-
-    h1 span {
-      display: block;
-      color: transparent;
-      -webkit-text-stroke: 1px rgba(237, 248, 243, .44);
-    }
-
-    .lead {
-      max-width: 620px;
-      margin: 28px 0 0;
-      color: var(--muted);
-      font-size: clamp(1rem, 1.8vw, 1.18rem);
-      line-height: 1.7;
-    }
-
-    .signal {
-      position: relative;
-      padding: 28px;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      border-radius: 20px;
-      background: linear-gradient(150deg, var(--surface), rgba(6, 16, 12, .58));
-      backdrop-filter: blur(14px);
-    }
-
-    .signal::after {
-      content: "";
-      position: absolute;
-      width: 180px;
-      height: 180px;
-      right: -90px;
-      bottom: -100px;
-      border-radius: 50%;
-      background: rgba(127, 232, 195, .10);
-      filter: blur(6px);
-    }
-
-    .signal-label {
-      color: var(--sky);
-      font: 600 .63rem "IBM Plex Mono", monospace;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-    }
-
-    .signal h2 {
-      margin: 42px 0 11px;
-      font-family: Archivo, sans-serif;
-      font-size: clamp(1.55rem, 3vw, 2.15rem);
-      line-height: 1.06;
-      letter-spacing: -.04em;
-    }
-
-    .signal p {
-      margin: 0;
-      color: var(--muted);
-      font-size: .88rem;
-      line-height: 1.65;
-    }
-
-    .progress {
-      height: 5px;
-      margin-top: 32px;
-      overflow: hidden;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, .07);
-    }
-
-    .progress::before {
-      content: "";
-      display: block;
-      width: 42%;
-      height: 100%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, var(--green), var(--mint));
-      box-shadow: 0 0 18px rgba(127, 232, 195, .36);
-    }
-
-    footer {
-      padding-top: 22px;
-      border-top: 1px solid var(--line);
-      color: var(--muted);
-      font: 500 .64rem "IBM Plex Mono", monospace;
-      letter-spacing: .04em;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; box-shadow: 0 0 0 5px rgba(23, 178, 124, .11); }
-      50% { opacity: .55; box-shadow: 0 0 0 10px rgba(23, 178, 124, 0); }
-    }
-
-    @media (max-width: 820px) {
-      main { grid-template-columns: 1fr; padding: 90px 0 70px; }
-      .signal { max-width: 560px; }
-    }
-
-    @media (max-width: 520px) {
-      .page { width: calc(100% - 28px); padding: 20px 0; }
-      .brand-name { display: none; }
-      main { padding: 70px 0 54px; gap: 44px; }
-      h1 { font-size: clamp(3.2rem, 17vw, 5rem); }
-      .signal { padding: 22px; }
-      footer { align-items: flex-start; flex-direction: column; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .status::before { animation: none; }
-    }
+    :root{--forest:#12372b;--forest-2:#194b3b;--mint:#d9ff63;--mint-soft:#efffc7;--aqua:#b9efe1;--cream:#f5f7f1;--paper:#fffef9;--ink:#14221d;--muted:#65746e;--line:#dce4de;--shadow:0 24px 70px rgba(18,55,43,.13);--radius:26px}
+    *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:Manrope,system-ui,sans-serif;color:var(--ink);background:var(--cream);line-height:1.55;overflow-x:hidden}a{color:inherit;text-decoration:none}button,input{font:inherit}button{cursor:pointer}::selection{background:var(--mint);color:var(--forest)}.wrap{width:min(1180px,calc(100% - 40px));margin-inline:auto}.mono{font-family:"DM Mono",monospace}.kicker{display:inline-flex;align-items:center;gap:9px;font:500 .72rem "DM Mono",monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--forest-2)}.kicker::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 5px rgba(217,255,99,.25)}h1,h2,h3{letter-spacing:-.045em;line-height:1.06}h2{font-size:clamp(2rem,4vw,3.65rem)}p{color:var(--muted)}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 23px;border:1px solid transparent;border-radius:14px;font-weight:800;font-size:.92rem;transition:.25s ease}.btn-primary{background:var(--forest);color:white;box-shadow:0 12px 28px rgba(18,55,43,.2)}.btn-primary:hover{background:var(--forest-2);transform:translateY(-2px);box-shadow:0 16px 36px rgba(18,55,43,.25)}.btn-lime{background:var(--mint);color:var(--forest)}.btn-lime:hover{background:#e4ff92;transform:translateY(-2px)}.btn-ghost{border-color:var(--line);background:rgba(255,255,255,.65);color:var(--forest)}.btn-ghost:hover{background:white;border-color:#b7c7bd;transform:translateY(-2px)}
+    .top-note{background:var(--forest);color:#dbe8e2;text-align:center;font-size:.76rem;padding:8px 16px}.top-note b{color:var(--mint)}header{position:sticky;top:0;z-index:30;border-bottom:1px solid rgba(18,55,43,.1);background:rgba(245,247,241,.86);backdrop-filter:blur(18px)}.nav{height:76px;display:flex;align-items:center;justify-content:space-between;gap:28px}.brand{display:flex;align-items:center;gap:11px;color:var(--forest);font-size:1.07rem;font-weight:800;letter-spacing:-.025em;white-space:nowrap}.header-brand{flex:0 0 auto}.header-logo{display:block;width:174px;height:auto;max-height:42px;object-fit:contain;object-position:left center}.brand-mark{width:39px;height:39px;border-radius:12px;background:var(--forest);display:grid;place-items:center;position:relative;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}.brand-mark::before,.brand-mark::after{content:"";position:absolute;background:var(--mint);border-radius:3px}.brand-mark::before{width:20px;height:7px}.brand-mark::after{width:7px;height:20px}nav{display:flex;align-items:center;gap:26px;margin-left:auto}nav a{font-size:.83rem;font-weight:700;color:#4c6259;transition:.2s}nav a:hover{color:var(--forest)}.nav-cta{min-height:42px;padding-inline:17px;border-radius:11px}.menu-btn{display:none;width:44px;height:44px;border:1px solid var(--line);border-radius:12px;background:white;color:var(--forest);font-size:1.2rem}
+    .hero{position:relative;padding:88px 0 72px;isolation:isolate}.hero::before{content:"";position:absolute;z-index:-1;width:650px;height:650px;right:-260px;top:-250px;border-radius:50%;background:radial-gradient(circle,var(--aqua),transparent 67%);opacity:.65}.hero-grid{display:grid;grid-template-columns:1.03fr .97fr;gap:72px;align-items:center}.hero h1{font-size:clamp(3rem,6.2vw,5.7rem);max-width:740px;color:var(--forest);margin:25px 0}.hero h1 em{font-style:normal;position:relative;z-index:0;white-space:nowrap}.type-word{display:inline-block;min-width:4.7ch}.type-word::before{content:"";position:absolute;z-index:-1;left:-.02em;right:-.02em;bottom:.06em;height:.25em;background:var(--mint);border-radius:4px;transform:scaleX(0) rotate(-1deg);transform-origin:left;transition:transform .45s cubic-bezier(.2,.8,.2,1)}.type-word.typed-complete::before{transform:scaleX(1) rotate(-1deg)}.type-word.typing::after{content:"";display:inline-block;width:.055em;height:.8em;margin-left:.06em;background:var(--forest);vertical-align:-.04em;animation:caretBlink .72s steps(1) infinite}@keyframes caretBlink{50%{opacity:0}}.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}.lead{font-size:1.08rem;max-width:600px;line-height:1.75}.lead strong{color:var(--ink)}.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin:34px 0 32px}.micro-proof{display:flex;align-items:center;gap:14px;font-size:.78rem;color:var(--muted)}.avatars{display:flex;padding-left:8px}.avatar{width:32px;height:32px;border-radius:50%;border:3px solid var(--cream);margin-left:-8px;display:grid;place-items:center;background:var(--forest);color:white;font-size:.68rem;font-weight:800}.avatar:nth-child(2){background:#2a7259}.avatar:nth-child(3){background:#4d9680}.avatar:nth-child(4){background:var(--mint);color:var(--forest)}.micro-proof b{display:block;color:var(--forest)}
+    .portal-wrap{position:relative}.hero-visual.reveal{transform:translate3d(0,34px,0) scale(.97);transition-duration:.9s;transition-delay:.42s}.hero-visual.reveal.visible{transform:translate3d(0,var(--hero-shift,0px),0) scale(1)}.portal{background:var(--paper);border:1px solid rgba(18,55,43,.14);border-radius:28px;box-shadow:var(--shadow);overflow:hidden;transform:rotate(1deg);animation:portalFloat 6s ease-in-out 1.4s infinite}@keyframes portalFloat{0%,100%{transform:rotate(1deg) translateY(0)}50%{transform:rotate(.45deg) translateY(-7px)}}.portal-top{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;background:var(--forest);color:white}.portal-logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:.82rem}.portal-logo i{width:24px;height:24px;border-radius:7px;background:var(--mint);color:var(--forest);display:grid;place-items:center;font-style:normal}.portal-user{font-size:.68rem;color:#afc6bc;background:rgba(255,255,255,.08);padding:6px 10px;border-radius:8px}.portal-body{padding:22px}.portal-title{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:16px}.portal-title span{font:500 .63rem "DM Mono",monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}.portal-title h3{font-size:1.2rem;margin-top:4px;color:var(--forest)}.live{display:flex;align-items:center;gap:6px;color:#2a7259!important}.live::before{content:"";width:7px;height:7px;background:#39b67e;border-radius:50%;box-shadow:0 0 0 4px #dff6eb}.product-card{border:1px solid var(--line);border-radius:18px;padding:17px;margin-top:11px;background:white;transition:.25s}.product-card:hover{border-color:#a5bdb1;transform:translateY(-2px)}.product-head{display:flex;justify-content:space-between;gap:14px}.product-name{font-weight:800;font-size:.88rem;color:var(--forest)}.lot{font:400 .58rem "DM Mono",monospace;color:var(--muted);background:#f0f3ef;border-radius:7px;padding:5px 7px;white-space:nowrap}.lab{font-size:.67rem;color:var(--muted);margin-top:3px}.product-numbers{display:grid;grid-template-columns:1fr auto;align-items:end;margin-top:14px;gap:12px}.price-label{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.price{font:500 1.55rem "DM Mono",monospace;color:var(--forest);line-height:1.2}.margin-pill{background:var(--mint-soft);color:var(--forest);padding:7px 10px;border-radius:9px;font:500 .65rem "DM Mono",monospace;text-align:right}.stock{height:6px;background:#edf1ee;border-radius:99px;margin-top:14px;overflow:hidden}.stock i{display:block;height:100%;background:linear-gradient(90deg,#3dc08a,var(--mint));border-radius:inherit;width:68%}.portal-foot{display:flex;gap:8px;margin-top:14px}.mini-btn{flex:1;border:0;border-radius:10px;background:var(--forest);color:white;padding:10px;font-size:.68rem;font-weight:800}.mini-btn.secondary{background:#edf2ee;color:var(--forest)}.float-card{position:absolute;right:-28px;bottom:-26px;background:var(--forest);color:white;border-radius:17px;padding:15px 18px;box-shadow:0 18px 40px rgba(18,55,43,.26);transform:rotate(-2deg)}.float-card small{display:block;color:#a9c2b7;font-size:.62rem}.float-card b{font:500 1.06rem "DM Mono",monospace;color:var(--mint)}
+    .hero-photo{position:relative;height:620px;border-radius:30px;overflow:hidden;box-shadow:var(--shadow);transform:rotate(1deg);background:var(--forest)}.hero-photo>img{width:100%;height:100%;object-fit:cover;object-position:51% center;display:block}.hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,55,43,.03) 35%,rgba(7,28,21,.78) 100%)}.photo-top{position:absolute;z-index:2;left:22px;top:22px;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);padding:9px 12px;border-radius:10px;color:var(--forest);font:500 .62rem "DM Mono",monospace;text-transform:uppercase;letter-spacing:.06em}.photo-top i{width:7px;height:7px;border-radius:50%;background:#39b67e;box-shadow:0 0 0 4px rgba(57,182,126,.14)}.photo-caption{position:absolute;z-index:2;left:26px;right:26px;bottom:25px;color:white}.photo-caption span{font:500 .62rem "DM Mono",monospace;text-transform:uppercase;letter-spacing:.1em;color:var(--mint)}.photo-caption h3{font-size:1.45rem;margin:9px 0 14px;max-width:370px}.photo-metrics{display:flex;gap:8px}.photo-metric{padding:9px 11px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.09);backdrop-filter:blur(10px);border-radius:10px;font-size:.65rem;color:#d6e4de}.photo-metric b{display:block;color:white;font-size:.76rem}.float-card{z-index:3}
+    .proof-bar{padding:20px 0 70px}.proof-grid{display:grid;grid-template-columns:1.3fr repeat(3,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.proof-item{padding:27px 24px;border-right:1px solid var(--line)}.proof-item:last-child{border:0}.proof-item:first-child{padding-left:0;display:flex;align-items:center;color:var(--muted);font-size:.84rem}.proof-item b{font-size:1.6rem;letter-spacing:-.04em;color:var(--forest);display:block}.proof-item span{font-size:.7rem;color:var(--muted)}
+    section.block{padding:100px 0}.section-head{display:grid;grid-template-columns:.72fr 1.28fr;gap:60px;align-items:end;margin-bottom:54px}.section-head p{max-width:570px;margin-top:18px;font-size:.98rem;line-height:1.75}.section-head .kicker{align-self:start;margin-top:11px}.dark{background:var(--forest);color:white;border-radius:38px;margin:0 18px}.dark p{color:#abc1b7}.dark .kicker{color:var(--aqua)}.dark .kicker::before{background:var(--mint)}
+    .benefit-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}.benefit{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:28px;min-height:250px;position:relative;overflow:hidden;transition:.25s}.benefit:hover{transform:translateY(-5px);box-shadow:0 18px 50px rgba(18,55,43,.1);border-color:#b8c8be}.benefit:nth-child(1),.benefit:nth-child(2){grid-column:span 6}.benefit:nth-child(n+3){grid-column:span 4}.benefit-icon{width:45px;height:45px;border-radius:13px;background:var(--mint-soft);display:grid;place-items:center;color:var(--forest);font-size:1.15rem;margin-bottom:48px}.benefit h3{font-size:1.16rem;color:var(--forest);margin-bottom:10px}.benefit p{font-size:.84rem;line-height:1.7}.benefit .tag{position:absolute;right:18px;top:18px;font:500 .59rem "DM Mono",monospace;text-transform:uppercase;letter-spacing:.08em;color:#557066;background:#edf3ee;padding:6px 9px;border-radius:8px}.benefit.featured{background:var(--mint);border-color:var(--mint)}.benefit.featured .benefit-icon{background:var(--forest);color:var(--mint)}.benefit.featured p{color:#3d5d4f}.benefit.featured .tag{background:rgba(18,55,43,.1);color:var(--forest)}
+    section.steps-story{min-height:170vh;padding:0}.steps-sticky{position:sticky;top:108px;min-height:calc(100vh - 108px);padding:66px 0;display:flex;flex-direction:column;justify-content:center}.steps-story .section-head{margin-bottom:42px}.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.14);border-radius:24px;overflow:hidden}.step{padding:38px;background:rgba(255,255,255,.025);min-height:290px}.steps-story .step{opacity:0;visibility:hidden;filter:blur(5px);transform:translateY(28px) scale(.985);transition:opacity .65s ease,filter .65s ease,transform .65s cubic-bezier(.2,.8,.2,1),background .65s ease,box-shadow .65s ease,visibility 0s linear .65s}.steps-story .step.is-active{opacity:.68;visibility:visible;filter:none;transform:none;transition-delay:0s}.steps-story .step.is-current{opacity:1;background:rgba(255,255,255,.085);box-shadow:inset 0 3px 0 var(--mint)}.step-num{font:500 .68rem "DM Mono",monospace;color:var(--mint);margin-bottom:62px;display:flex;align-items:center;gap:10px}.step-num::after{content:"";height:1px;background:rgba(255,255,255,.16);flex:1}.step h3{font-size:1.25rem;margin-bottom:13px}.step p{font-size:.85rem;line-height:1.75}
+    .operations{padding:85px 0 20px}.operations-card{display:grid;grid-template-columns:1.05fr .95fr;min-height:560px;background:var(--paper);border:1px solid var(--line);border-radius:32px;overflow:hidden;box-shadow:0 22px 65px rgba(18,55,43,.1)}.operations-image{position:relative;min-height:560px;overflow:hidden}.operations-image img{width:100%;height:108%;object-fit:cover;object-position:center;display:block;transform:scale(1.045) translate3d(0,var(--image-shift,0px),0);transition:transform .35s ease-out;will-change:transform}.operations-card:hover .operations-image img{transform:scale(1.065) translate3d(0,var(--image-shift,0px),0)}.operations-image::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(12,40,31,.48))}.image-note{position:absolute;z-index:2;left:22px;bottom:20px;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-radius:12px;padding:11px 14px;font:500 .62rem "DM Mono",monospace;color:var(--forest);text-transform:uppercase;letter-spacing:.06em}.operations-copy{padding:62px;display:flex;flex-direction:column;justify-content:center}.operations-copy h2{font-size:clamp(2rem,3.4vw,3.25rem);margin:22px 0 20px;color:var(--forest)}.operations-copy>p{font-size:.92rem;line-height:1.8}.operation-points{margin-top:30px;display:grid;gap:0;border-top:1px solid var(--line)}.operation-point{display:grid;grid-template-columns:38px 1fr;gap:13px;padding:17px 0;border-bottom:1px solid var(--line)}.operation-point b{width:32px;height:32px;border-radius:10px;background:var(--mint-soft);display:grid;place-items:center;color:var(--forest);font:500 .65rem "DM Mono",monospace}.operation-point strong{display:block;color:var(--forest);font-size:.82rem;margin-bottom:3px}.operation-point span{font-size:.72rem;color:var(--muted)}
+    .margin-layout{display:grid;grid-template-columns:.85fr 1.15fr;gap:70px;align-items:center}.margin-copy h2{margin:22px 0 20px;color:var(--forest)}.margin-copy>p{font-size:.98rem;line-height:1.8}.check-list{list-style:none;margin-top:28px;display:grid;gap:14px}.check-list li{display:flex;gap:12px;align-items:flex-start;color:#435950;font-size:.87rem;font-weight:600}.check-list li::before{content:"✓";width:22px;height:22px;flex:0 0 22px;display:grid;place-items:center;border-radius:7px;background:var(--forest);color:var(--mint);font-size:.72rem}.calculator{background:var(--paper);border:1px solid var(--line);border-radius:26px;padding:32px;box-shadow:var(--shadow)}.calc-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:22px;border-bottom:1px solid var(--line)}.calc-head h3{font-size:1rem;color:var(--forest)}.ai-chip{font:500 .58rem "DM Mono",monospace;background:#e6f6f1;color:#246950;padding:6px 9px;border-radius:8px;text-transform:uppercase;letter-spacing:.07em}.range-wrap{margin:25px 0 18px}.range-title{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted);margin-bottom:12px}.range-title b{font:500 .82rem "DM Mono",monospace;color:var(--forest)}input[type=range]{width:100%;accent-color:var(--forest)}.calc-lines{display:grid;gap:0;border-top:1px solid var(--line);margin-top:22px}.calc-line{display:flex;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line);font-size:.78rem;color:var(--muted)}.calc-line b{font:500 .8rem "DM Mono",monospace;color:var(--ink)}.result{margin-top:20px;background:var(--forest);color:white;padding:22px;border-radius:17px;display:flex;align-items:flex-end;justify-content:space-between;gap:15px}.result span{font-size:.72rem;color:#abc1b7}.result strong{display:block;font-size:.75rem;color:var(--mint);margin-top:4px}.result b{font:500 clamp(1.4rem,3vw,2rem) "DM Mono",monospace;color:var(--mint)}.calculator.auto-tick .range-title b,.calculator.auto-tick #investment,.calculator.auto-tick #profit{animation:calcPulse .48s cubic-bezier(.2,.8,.2,1)}@keyframes calcPulse{0%{opacity:.35;transform:translateY(5px)}100%{opacity:1;transform:none}}
+    .plans{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:920px;margin:auto}.plan{border:1px solid var(--line);background:var(--paper);border-radius:26px;padding:34px;position:relative}.plan.pro{background:var(--forest);color:white;border-color:var(--forest);box-shadow:var(--shadow)}.plan-label{font:500 .66rem "DM Mono",monospace;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}.plan.pro .plan-label{color:var(--mint)}.plan h3{font-size:1.65rem;margin:12px 0 9px}.plan p{font-size:.82rem;min-height:52px}.plan.pro p{color:#abc1b7}.same-price{display:inline-block;margin:22px 0 17px;padding:7px 10px;background:#edf2ed;border-radius:8px;color:var(--forest);font:500 .63rem "DM Mono",monospace}.plan.pro .same-price{background:rgba(217,255,99,.12);color:var(--mint)}.plan ul{list-style:none;border-top:1px solid var(--line);padding:20px 0 24px;display:grid;gap:13px}.plan.pro ul{border-color:rgba(255,255,255,.13)}.plan li{font-size:.82rem;color:#455a51;display:flex;gap:9px}.plan.pro li{color:#d3e1db}.plan li::before{content:"✓";color:#2b8664;font-weight:800}.plan.pro li::before{color:var(--mint)}.plan .btn{width:100%}
+    .trust-row{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}.trust-card{border-top:2px solid var(--forest);padding:22px 8px 0 0}.trust-card .mono{font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:#2d765c}.trust-card h3{font-size:1rem;margin:15px 0 8px;color:var(--forest)}.trust-card p{font-size:.78rem;line-height:1.65}.final{padding:70px 0 90px}.final-card{position:relative;overflow:hidden;background:var(--mint);border-radius:34px;padding:68px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:45px}.final-card::after{content:"+";position:absolute;right:-10px;top:-95px;font-size:370px;font-weight:800;line-height:1;color:rgba(18,55,43,.07)}.final-card h2{max-width:720px;color:var(--forest);position:relative;z-index:1}.final-card p{color:#3c5e4f;margin-top:17px;max-width:650px;position:relative;z-index:1}.final-card .btn{position:relative;z-index:1;white-space:nowrap}footer{background:var(--forest);color:white;padding:54px 0 30px}.footer-top{display:flex;justify-content:space-between;gap:30px;padding-bottom:36px;border-bottom:1px solid rgba(255,255,255,.12)}.footer-top p{color:#a9beb5;font-size:.78rem;margin-top:13px;max-width:420px}.footer-links{display:flex;gap:30px;align-items:center;color:#ccdad4;font-size:.77rem}.footer-bottom{display:flex;justify-content:space-between;gap:20px;padding-top:25px;color:#839d92;font-size:.68rem}.reveal{opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s ease}.reveal.visible{opacity:1;transform:none}
+    @media(max-width:960px){nav{position:absolute;left:20px;right:20px;top:68px;background:white;border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:18px;display:none;flex-direction:column;align-items:stretch;gap:8px}nav.open{display:flex}nav a{padding:9px}.menu-btn{display:grid;place-items:center}.nav>.nav-cta{display:none}.hero-grid,.margin-layout{grid-template-columns:1fr;gap:55px}.hero{padding-top:65px}.portal-wrap{max-width:720px;margin:auto;width:100%}.hero-photo{height:530px}.section-head{grid-template-columns:1fr;gap:18px}.benefit:nth-child(n){grid-column:span 6}section.steps-story{min-height:auto;padding:100px 0}.steps-sticky{position:static;min-height:0;padding:0;display:block}.steps{grid-template-columns:1fr}.step{min-height:auto}.steps-story .step{min-height:220px}.step-num{margin-bottom:30px}.operations-card{grid-template-columns:1fr}.operations-image{min-height:500px}.operations-copy{padding:50px}.trust-row{grid-template-columns:1fr 1fr}.final-card{grid-template-columns:1fr;padding:50px}.proof-grid{grid-template-columns:1fr 1fr}.proof-item:first-child{grid-column:span 2;border-right:0;border-bottom:1px solid var(--line)}}
+    @media(max-width:620px){.wrap{width:min(100% - 28px,1180px)}.top-note{font-size:.66rem}.nav{height:66px}.header-logo{width:148px;max-height:34px}.brand-mark{width:35px;height:35px}.hero{padding:55px 0 48px}.hero h1{font-size:clamp(2.55rem,13vw,4rem)}.hero h1 em{white-space:normal}.hero-actions .btn{width:100%}.micro-proof{align-items:flex-start}.hero-photo{height:470px;transform:none;border-radius:23px}.hero-photo>img{object-position:54% center}.photo-caption{left:18px;right:18px;bottom:18px}.photo-caption h3{font-size:1.2rem}.photo-metrics{flex-wrap:wrap}.float-card{right:-3px;bottom:-25px}.proof-bar{padding-top:30px}.proof-grid{grid-template-columns:1fr 1fr}.proof-item{padding:20px 12px}.proof-item:first-child{padding-left:12px}.proof-item:nth-child(3){border-right:0}.proof-item:last-child{grid-column:span 2;border-top:1px solid var(--line)}section.block{padding:74px 0}section.steps-story{padding:74px 0}.dark{margin:0 7px;border-radius:28px}.benefit:nth-child(n){grid-column:span 12;min-height:auto}.benefit-icon{margin-bottom:35px}.operations{padding-top:55px}.operations-card{border-radius:24px}.operations-image{min-height:390px}.operations-copy{padding:36px 24px}.calculator{padding:22px}.result{align-items:flex-start;flex-direction:column}.plans{grid-template-columns:1fr}.trust-row{grid-template-columns:1fr}.final{padding:55px 0}.final-card{padding:38px 25px;border-radius:26px}.footer-top,.footer-bottom{flex-direction:column}.footer-links{flex-wrap:wrap;gap:15px 22px}}
+    .type-word{min-width:5.8ch}
+    .prelaunch{padding:80px 0 95px}.prelaunch-card{display:grid;grid-template-columns:.82fr 1.18fr;background:var(--paper);border:1px solid var(--line);border-radius:34px;overflow:hidden;box-shadow:var(--shadow)}.prelaunch-copy{position:relative;overflow:hidden;background:var(--forest);color:white;padding:58px}.prelaunch-copy::after{content:"+";position:absolute;right:-35px;bottom:-105px;font-size:330px;font-weight:800;line-height:1;color:rgba(217,255,99,.06)}.prelaunch-copy .kicker{color:var(--aqua);position:relative;z-index:1}.prelaunch-copy h2{font-size:clamp(2.25rem,4vw,3.7rem);margin:25px 0 18px;position:relative;z-index:1}.prelaunch-copy>p{color:#b8cbc3;line-height:1.75;font-size:.9rem;position:relative;z-index:1}.launch-date{display:flex;align-items:center;gap:14px;margin:30px 0;padding:16px 0;border-top:1px solid rgba(255,255,255,.13);border-bottom:1px solid rgba(255,255,255,.13);position:relative;z-index:1}.launch-day{font-size:2.55rem;font-weight:800;line-height:1;color:var(--mint)}.launch-date span{display:block;font:500 .64rem "DM Mono",monospace;text-transform:uppercase;letter-spacing:.1em;color:#9db5ab}.launch-date b{font-size:.95rem}.countdown-label{font:500 .6rem "DM Mono",monospace;text-transform:uppercase;letter-spacing:.1em;color:#9db5ab;position:relative;z-index:1}.launch-countdown{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;position:relative;z-index:1}.count-cell{background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 8px;text-align:center}.count-cell b{display:block;font:500 1.25rem "DM Mono",monospace;color:var(--mint)}.count-cell span{font-size:.58rem;color:#9db5ab;text-transform:uppercase;letter-spacing:.08em}.prelaunch-form-wrap{padding:52px}.form-head{margin-bottom:28px}.form-head span{font:500 .65rem "DM Mono",monospace;color:#2d765c;text-transform:uppercase;letter-spacing:.1em}.form-head h3{font-size:1.7rem;margin:10px 0 8px;color:var(--forest)}.form-head p{font-size:.8rem}.lead-form{display:grid;grid-template-columns:1fr 1fr;gap:17px 14px}.field{display:grid;gap:7px}.field.full{grid-column:1/-1}.field label{font-size:.7rem;font-weight:800;color:#385047}.field input,.field select{width:100%;height:48px;border:1px solid var(--line);border-radius:11px;background:#f9faf7;color:var(--ink);padding:0 13px;outline:none;transition:.2s}.field input:focus,.field select:focus{border-color:#4c8d73;box-shadow:0 0 0 4px rgba(76,141,115,.11);background:white}.field input::placeholder{color:#9aa6a0}.consent{grid-column:1/-1;display:flex;align-items:flex-start;gap:10px;font-size:.67rem;color:var(--muted);line-height:1.5}.consent input{margin-top:3px;accent-color:var(--forest)}.hp-field{position:absolute!important;left:-9999px!important;width:1px!important;height:1px!important;overflow:hidden!important}.form-submit{grid-column:1/-1;width:100%;margin-top:3px}.form-submit:disabled{opacity:.7;cursor:wait;transform:none;box-shadow:none}.form-note{grid-column:1/-1;text-align:center;font-size:.62rem;color:var(--muted)}.form-status{grid-column:1/-1;display:none;padding:12px 14px;border-radius:10px;font-size:.75rem;font-weight:700}.form-status.show{display:block}.form-status.loading{background:#eef3ef;color:#4b6258}.form-status.success{background:#e5f7ec;color:#1e6849}.form-status.error{background:#fff0ed;color:#9a3b2f}
+    .prelaunch-form-wrap{perspective:1500px;transform-style:preserve-3d}.prelaunch-form-wrap>.form-head,.prelaunch-form-wrap>.lead-form{backface-visibility:hidden;-webkit-backface-visibility:hidden;transform-origin:center;transition:opacity .42s ease,transform .75s cubic-bezier(.2,.8,.2,1)}.prelaunch-success{position:absolute;inset:52px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;opacity:0;pointer-events:none;transform:rotateY(180deg) scale(.96);transform-origin:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:opacity .42s ease,transform .75s cubic-bezier(.2,.8,.2,1)}.prelaunch-form-wrap.is-complete>.form-head,.prelaunch-form-wrap.is-complete>.lead-form{opacity:0;pointer-events:none;transform:rotateY(-180deg) scale(.96)}.prelaunch-form-wrap.is-complete>.prelaunch-success{opacity:1;pointer-events:auto;transform:rotateY(0) scale(1)}.success-kicker{font:500 .65rem "DM Mono",monospace;color:#2d765c;text-transform:uppercase;letter-spacing:.1em}.success-check{width:74px;height:74px;border-radius:24px;display:grid;place-items:center;margin:22px 0;background:var(--forest);color:var(--mint);font-size:2.2rem;font-weight:800;box-shadow:0 18px 38px rgba(18,55,43,.2)}.prelaunch-success h3{font-size:clamp(2rem,4vw,3.2rem);color:var(--forest);margin-bottom:14px}.prelaunch-success>p{font-size:.9rem;line-height:1.75;max-width:480px}.prelaunch-success>p strong{color:var(--forest)}.success-email{display:inline-block;margin:18px 0 24px;padding:10px 13px;border-radius:10px;background:var(--mint-soft);color:var(--forest);font:500 .72rem "DM Mono",monospace;overflow-wrap:anywhere}.success-points{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}.success-points span{padding:7px 9px;border:1px solid var(--line);border-radius:9px;color:#52675e;font-size:.65rem;font-weight:700}.success-actions{display:flex;flex-wrap:wrap;gap:10px}.success-actions .btn{min-height:46px}.success-reset{border:0;background:transparent;color:#527065;font-weight:800;padding:0 10px}
+    @media(max-width:960px){.prelaunch-card{grid-template-columns:1fr}.prelaunch-copy,.prelaunch-form-wrap{padding:48px}.prelaunch-success{inset:48px}}
+    @media(max-width:620px){.prelaunch{padding:55px 0}.prelaunch-card{border-radius:25px}.prelaunch-copy,.prelaunch-form-wrap{padding:35px 23px}.prelaunch-success{inset:35px 23px}.success-check{width:62px;height:62px;border-radius:20px;margin:18px 0}.lead-form{grid-template-columns:1fr}.field.full,.consent,.form-submit,.form-note,.form-status{grid-column:1}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}.reveal{opacity:1;transform:none!important}.type-word::before{transform:scaleX(1) rotate(-1deg)!important}.operations-image img{transform:none!important;height:100%}}
   </style>
 </head>
 <body>
-  <div class="orb orb-left" aria-hidden="true"></div>
-  <div class="orb orb-right" aria-hidden="true"></div>
-
-  <div class="page">
-    <header>
-      <div class="brand">
-        <span class="brand-mark">PLO</span>
-        <span class="brand-name">PLO Farma</span>
-      </div>
-      <span class="status">Construyendo el futuro</span>
-    </header>
-
-    <main>
-      <section>
-        <div class="eyebrow">Nueva plataforma B2B</div>
-        <h1>Estamos preparando <span>algo mejor.</span></h1>
-        <p class="lead">Una nueva experiencia de abastecimiento para farmacias está en camino. Más simple, más ágil y diseñada para ayudarte a tomar mejores decisiones.</p>
-      </section>
-
-      <aside class="signal">
-        <div class="signal-label">Estado del proyecto</div>
-        <h2>Muy pronto estaremos en línea.</h2>
-        <p>Estamos trabajando en los últimos detalles de la plataforma PLO Farma.</p>
-        <div class="progress" aria-label="Proyecto en desarrollo"></div>
-      </aside>
-    </main>
-
-    <footer>
-      <span>© 2026 PLO Farma</span>
-      <span>Santiago, Chile</span>
-    </footer>
-  </div>
+  <div class="top-note">Preinscripción anticipada abierta · Lanzamiento <b>1 de octubre</b> · Cupos prioritarios para farmacias</div>
+  <header><div class="wrap nav"><a class="brand header-brand" href="#inicio" aria-label="PloFarma, inicio"><img class="header-logo" src="assets/plo-farma-logo.png" alt="PloFarma" width="1175" height="235"></a><nav id="nav-menu" aria-label="Navegación principal"><a href="#beneficios">La plataforma</a><a href="#como-funciona">Cómo funciona</a><a href="#margen">Tu margen</a><a href="#membresias">Membresías</a><a href="#respaldo">Respaldo</a></nav><a class="btn btn-primary nav-cta" href="#cuenta">Preinscribirme <span>↗</span></a><button class="menu-btn" aria-label="Abrir menú" aria-controls="nav-menu" aria-expanded="false">☰</button></div></header>
+  <main>
+    <section class="hero" id="inicio"><div class="wrap hero-grid"><div class="reveal"><span class="kicker">Portal farmacéutico B2B · Lanzamiento 1 de octubre</span><h1>Compra mejor.<br>Vende con más <em class="type-word" data-text="margen."><span class="typed-text" aria-hidden="true">margen.</span><span class="sr-only">margen.</span></em></h1><p class="lead">Accede a <strong>más de 200 productos farmacéuticos</strong> con precio de liquidación, trazabilidad de lote y herramientas que te ayudan a decidir antes de comprar.</p><div class="hero-actions"><a class="btn btn-primary" href="#cuenta">Quiero acceso anticipado <span>↗</span></a><a class="btn btn-ghost" href="#margen">Calcular mi margen <span>↓</span></a></div><div class="micro-proof"><div class="avatars"><span class="avatar">FS</span><span class="avatar">DL</span><span class="avatar">FA</span><span class="avatar">+</span></div><div><b>Preinscripción exclusiva para farmacias</b>Regístrate hoy y recibe prioridad de activación.</div></div></div>
+      <div class="portal-wrap hero-visual reveal"><div class="portal"><div class="portal-top"><div class="portal-logo"><i>+</i> Portal PLO</div><div class="portal-user">PLO Socio · Farmacia Central</div></div><div class="portal-body"><div class="portal-title"><div><span>Catálogo de oportunidades</span><h3>Productos destacados</h3></div><span class="live">stock en vivo</span></div><article class="product-card"><div class="product-head"><div><div class="product-name">Ibuprofeno 400 mg · 20 comp.</div><div class="lab">Laboratorio Chile · Certificación vigente</div></div><span class="lot">L-4471 · V:09/27</span></div><div class="product-numbers"><div><div class="price-label">Tu precio por caja</div><div class="price">$1.290</div></div><div class="margin-pill">+55% ahorro<br>vs. referencia</div></div><div class="stock"><i></i></div><div class="portal-foot"><button class="mini-btn secondary">Calcular margen</button><button class="mini-btn">Agregar al pedido</button></div></article><article class="product-card"><div class="product-head"><div><div class="product-name">Amoxicilina 500 mg · 21 cáps.</div><div class="lab">Saval · Certificación vigente</div></div><span class="lot">L-4502 · V:03/28</span></div><div class="product-numbers"><div><div class="price-label">Tu precio por caja</div><div class="price">$2.540</div></div><div class="margin-pill">Oportunidad<br>detectada</div></div></article></div></div><div class="float-card"><small>Margen estimado del pedido</small><b>+ $290.000</b></div></div></div></section>
+    <div class="proof-bar"><div class="wrap proof-grid"><div class="proof-item">Una plataforma pensada para que cada compra tenga sentido comercial.</div><div class="proof-item"><b>200+</b><span>SKUs en el catálogo</span></div><div class="proof-item"><b>24 h</b><span>confirmación de pedido</span></div><div class="proof-item"><b>100%</b><span>lotes con trazabilidad</span></div></div></div>
+    <section class="block" id="beneficios"><div class="wrap"><div class="section-head reveal"><span class="kicker">Todo en un solo lugar</span><div><h2>Menos intuición.<br>Más decisiones rentables.</h2><p>PLO une precio, disponibilidad y datos comerciales en una experiencia simple para tu equipo de compras.</p></div></div><div class="benefit-grid"><article class="benefit featured reveal"><span class="tag">Oportunidades</span><div class="benefit-icon">↘</div><h3>Droguería online + ofertas relámpago</h3><p>Encuentra lotes disponibles cuando los necesites y accede a oportunidades adicionales por tiempo limitado.</p></article><article class="benefit reveal"><span class="tag">Rentabilidad</span><div class="benefit-icon">↗</div><h3>Margen visible antes de comprar</h3><p>Compara costo, PVP de referencia y utilidad potencial sin salir de la ficha del producto.</p></article><article class="benefit reveal"><span class="tag">Control</span><div class="benefit-icon">◎</div><h3>Stock y vencimiento claros</h3><p>Conoce lote, fecha de vencimiento y disponibilidad antes de confirmar.</p></article><article class="benefit reveal"><span class="tag">Operación</span><div class="benefit-icon">□</div><h3>Pedido y despacho en línea</h3><p>Revisa cada estado desde la confirmación hasta la entrega, sin perseguir mensajes.</p></article><article class="benefit reveal"><span class="tag">Inteligencia</span><div class="benefit-icon">✦</div><h3>Radar de precios</h3><p>Usa referencias de mercado actualizadas para definir un precio competitivo y proteger tu margen.</p></article></div></div></section>
+    <section class="block dark steps-story" id="como-funciona"><div class="wrap steps-sticky"><div class="section-head reveal"><span class="kicker">Así de simple</span><div><h2>Del registro al despacho,<br>sin fricción.</h2><p>Tu equipo puede explorar, comparar y comprar de forma autónoma, con toda la información necesaria en pantalla.</p></div></div><div class="steps"><article class="step is-active is-current"><div class="step-num">01 · ACTIVA</div><h3>Registra tu farmacia</h3><p>Ingresa el RUT y los datos de tu empresa. Validamos el giro y habilitamos tu cuenta B2B.</p></article><article class="step"><div class="step-num">02 · ELIGE</div><h3>Explora oportunidades</h3><p>Filtra por producto o laboratorio y revisa lote, vencimiento, stock y margen potencial.</p></article><article class="step"><div class="step-num">03 · RECIBE</div><h3>Confirma y haz seguimiento</h3><p>Arma tu pedido, recibe una orden PLO y sigue el despacho desde el mismo portal.</p></article></div></div></section>
+    <section class="operations"><div class="wrap"><div class="operations-card reveal"><div class="operations-image"><img src="assets/control-inventario-plo.jpg" alt="Profesional controlando inventario farmacéutico con una tablet dentro de la bodega" width="1400" height="933" loading="lazy"><div class="image-note">Control de inventario en terreno</div></div><div class="operations-copy"><span class="kicker">Operación que se ve</span><h2>Tecnología con respaldo humano.</h2><p>El portal simplifica la compra; nuestro equipo cuida la operación detrás de cada pedido. Inventario, documentación y despacho trabajan como un solo proceso.</p><div class="operation-points"><div class="operation-point"><b>01</b><div><strong>Inventario verificado</strong><span>Disponibilidad revisada antes de la confirmación.</span></div></div><div class="operation-point"><b>02</b><div><strong>Documentación asociada</strong><span>Lote, vencimiento y antecedentes en la misma orden.</span></div></div><div class="operation-point"><b>03</b><div><strong>Seguimiento visible</strong><span>Estado del pedido disponible para todo tu equipo.</span></div></div></div></div></div></div></section>
+    <section class="block" id="margen"><div class="wrap margin-layout"><div class="margin-copy reveal"><span class="kicker">Simula antes de comprar</span><h2>Tu margen deja de ser una suposición.</h2><p>Prueba un escenario real. Ajusta el volumen y conoce al instante tu inversión, utilidad potencial y retorno estimado.</p><ul class="check-list"><li>Costo PLO y PVP recomendado en un mismo lugar</li><li>Resultado por caja y por pedido completo</li><li>Referencias comerciales actualizadas por el Radar PLO</li></ul></div><div class="calculator reveal"><div class="calc-head"><h3>Ibuprofeno 400 mg · 20 comp.</h3><span class="ai-chip">Radar activo</span></div><div class="range-wrap"><div class="range-title"><span>Volumen de compra</span><b><span id="qty">250</span> cajas</b></div><input id="volume" type="range" min="50" max="500" step="50" value="250" aria-label="Volumen de compra"></div><div class="calc-lines"><div class="calc-line"><span>Costo unitario PLO</span><b>$1.290</b></div><div class="calc-line"><span>PVP recomendado</span><b>$2.450</b></div><div class="calc-line"><span>Margen por caja</span><b>$1.160</b></div><div class="calc-line"><span>Inversión total</span><b id="investment">$322.500</b></div></div><div class="result"><div><span>Utilidad potencial del lote</span><strong>90% sobre inversión</strong></div><b id="profit">$290.000</b></div></div></div></section>
+    <section class="block" id="membresias"><div class="wrap"><div class="section-head reveal"><span class="kicker">Membresías PLO</span><div><h2>El mismo precio.<br>Distinto acompañamiento.</h2><p>Elige la experiencia que mejor se ajusta a tu operación. El precio PLO es igual para todos; el servicio marca la diferencia.</p></div></div><div class="plans"><article class="plan reveal"><span class="plan-label">Acceso al portal B2B</span><h3>PLO Acceso</h3><p>Para farmacias que quieren comenzar a comprar oportunidades de forma autónoma.</p><span class="same-price">MISMO PRECIO PLO</span><ul><li>Catálogo completo de 200+ SKUs</li><li>Calculadora de margen</li><li>Seguimiento de pedidos</li><li>Soporte por canal general</li></ul><a class="btn btn-ghost" href="#cuenta">Comenzar con Acceso</a></article><article class="plan pro reveal"><span class="plan-label">Experiencia completa</span><h3>PLO Socio</h3><p>Para equipos que buscan anticipación, inteligencia comercial y soporte prioritario.</p><span class="same-price">MISMO PRECIO PLO</span><ul><li>Todo lo incluido en PLO Acceso</li><li>Ventana anticipada de lotes</li><li>Radar de precios semanal</li><li>Recomendación de compra</li><li>Ejecutivo y soporte prioritario</li></ul><a class="btn btn-lime" href="#cuenta">Quiero ser PLO Socio</a></article></div></div></section>
+    <section class="block" id="respaldo"><div class="wrap"><div class="section-head reveal"><span class="kicker">Compra con respaldo</span><div><h2>Liquidación no significa improvisación.</h2><p>Cada publicación reúne la información sanitaria, comercial y logística que tu farmacia necesita para comprar con confianza.</p></div></div><div class="trust-row"><article class="trust-card reveal"><span class="mono">Sanitario</span><h3>Certificación ISP</h3><p>Registro y documentación sanitaria visibles para cada producto.</p></article><article class="trust-card reveal"><span class="mono">Trazabilidad</span><h3>Lote y vencimiento</h3><p>Información declarada antes de confirmar la compra.</p></article><article class="trust-card reveal"><span class="mono">Tributario</span><h3>Documentación SII</h3><p>Guías y documentos asociados a cada orden.</p></article><article class="trust-card reveal"><span class="mono">Origen</span><h3>Laboratorios establecidos</h3><p>Productos provenientes de actores reconocidos del mercado.</p></article></div></div></section>
+    <section class="prelaunch" id="cuenta"><div class="wrap"><div class="prelaunch-card reveal"><div class="prelaunch-copy"><span class="kicker">Preinscripción anticipada</span><h2>Sé de los primeros en entrar a PLO.</h2><p>Déjanos los datos de tu farmacia. Antes del lanzamiento validaremos tu giro y te contactaremos para coordinar la activación prioritaria.</p><div class="launch-date"><div class="launch-day">01</div><div><span>Lanzamiento oficial</span><b>Octubre · 2026</b></div></div><div class="countdown-label">Faltan para abrir el portal</div><div class="launch-countdown" aria-label="Cuenta regresiva para el lanzamiento"><div class="count-cell"><b id="launch-days">15</b><span>días</span></div><div class="count-cell"><b id="launch-hours">00</b><span>horas</span></div><div class="count-cell"><b id="launch-minutes">00</b><span>minutos</span></div></div></div><div class="prelaunch-form-wrap"><div class="form-head"><span>Reserva tu acceso</span><h3>Preinscribe tu farmacia</h3><p>Completar el formulario toma menos de un minuto.</p></div><form class="lead-form" id="prelaunch-form"><div class="field"><label for="lead-name">Nombre y apellido *</label><input id="lead-name" name="nombre" autocomplete="name" maxlength="120" placeholder="Ej. Carolina Soto" required></div><div class="field"><label for="lead-email">Email de contacto *</label><input id="lead-email" name="email" type="email" autocomplete="email" maxlength="180" placeholder="nombre@farmacia.cl" required></div><div class="field"><label for="lead-phone">WhatsApp *</label><input id="lead-phone" name="telefono" type="tel" autocomplete="tel" maxlength="30" placeholder="+56 9 1234 5678" required></div><div class="field"><label for="lead-company">Nombre de la farmacia *</label><input id="lead-company" name="farmacia" autocomplete="organization" maxlength="160" placeholder="Farmacia Central" required></div><div class="field"><label for="lead-rut">RUT de la empresa *</label><input id="lead-rut" name="rut" inputmode="text" maxlength="20" placeholder="76.123.456-7" required></div><div class="field"><label for="lead-location">Comuna *</label><input id="lead-location" name="comuna" autocomplete="address-level2" maxlength="100" placeholder="Ej. Providencia" required></div><div class="field full"><label for="lead-plan">Tipo de acceso que te interesa</label><select id="lead-plan" name="interes"><option value="Aún no lo sé">Aún no lo sé</option><option value="PLO Acceso">PLO Acceso</option><option value="PLO Socio">PLO Socio</option></select></div><div class="hp-field" aria-hidden="true"><label for="lead-website">No completar este campo</label><input id="lead-website" name="website" tabindex="-1" autocomplete="off"></div><label class="consent"><input name="consentimiento" type="checkbox" value="true" required> Autorizo a PLO Droguería a almacenar estos datos y contactarme respecto de la preinscripción y el lanzamiento del Portal B2B.</label><div class="form-status" id="form-status" role="status" aria-live="polite"></div><button class="btn btn-primary form-submit" type="submit">Reservar mi acceso anticipado <span>↗</span></button><div class="form-note">Datos almacenados de forma segura · Acceso exclusivo para empresas con giro vigente</div></form><div class="prelaunch-success" id="prelaunch-success" aria-hidden="true"><span class="success-kicker">Preinscripción confirmada</span><div class="success-check" aria-hidden="true">✓</div><h3 id="success-title" tabindex="-1">¡Ya estás dentro!</h3><p>Registramos la preinscripción de <strong id="success-pharmacy">tu farmacia</strong>. Te enviaremos el correo de bienvenida y las novedades del lanzamiento a:</p><div class="success-email" id="success-email">tu correo</div><div class="success-points"><span>✓ Registro seguro</span><span>✓ Activación prioritaria</span><span>✓ Lanzamiento 1 de octubre</span></div><div class="success-actions"><a class="btn btn-primary" href="#inicio">Volver al inicio <span>↑</span></a><button class="success-reset" id="register-another" type="button">Registrar otra farmacia</button></div></div></div></div></div></section>
+  </main>
+  <footer><div class="wrap"><div class="footer-top"><div><a class="brand" href="#inicio" style="color:white"><span class="brand-mark" style="background:white"></span><span>PLO Droguería</span></a><p>Portal B2B de oportunidades farmacéuticas para comprar con información y vender con más margen.</p></div><div class="footer-links"><a href="#beneficios">Plataforma</a><a href="#membresias">Membresías</a><a href="mailto:contacto@plodrogueria.cl">Contacto</a></div></div><div class="footer-bottom"><span>© 2026 PLO Droguería. Venta exclusiva a empresas del rubro.</span><span>Santiago, Chile · contacto@plodrogueria.cl</span></div></div></footer>
+  <script>
+    const menuButton=document.querySelector('.menu-btn'),nav=document.querySelector('nav');
+    menuButton.addEventListener('click',()=>{const open=nav.classList.toggle('open');menuButton.setAttribute('aria-expanded',open);menuButton.textContent=open?'×':'☰'});
+    nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{nav.classList.remove('open');menuButton.setAttribute('aria-expanded','false');menuButton.textContent='☰'}));
+    const volume=document.querySelector('#volume'),qty=document.querySelector('#qty'),investment=document.querySelector('#investment'),profit=document.querySelector('#profit'),calculator=volume.closest('.calculator'),money=n=>'$'+n.toLocaleString('es-CL');
+    const renderVolume=(amount,animate=true)=>{volume.value=amount;qty.textContent=amount;investment.textContent=money(amount*1290);profit.textContent=money(amount*1160);if(animate){calculator.classList.remove('auto-tick');void calculator.offsetWidth;calculator.classList.add('auto-tick')}};
+    const demoVolumes=[100,250,400,500,300,150,450],advanceVolume=()=>{const current=Number(volume.value),index=demoVolumes.indexOf(current),next=demoVolumes[(index+1+demoVolumes.length)%demoVolumes.length];renderVolume(next)},stopVolumeDemo=()=>{clearInterval(volume.demoTimer)},startVolumeDemo=()=>{stopVolumeDemo();volume.demoTimer=setInterval(advanceVolume,2000)};
+    volume.addEventListener('input',()=>{renderVolume(Number(volume.value),false);if(calculator.dataset.visible==='true')startVolumeDemo()});
+    const calculatorObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{calculator.dataset.visible=String(entry.isIntersecting);entry.isIntersecting&&!document.hidden?startVolumeDemo():stopVolumeDemo()}),{threshold:.35});calculatorObserver.observe(calculator);document.addEventListener('visibilitychange',()=>{document.hidden?stopVolumeDemo():calculator.dataset.visible==='true'&&startVolumeDemo()});
+    const launchAt=new Date('2026-10-01T09:00:00-03:00'),dayEl=document.querySelector('#launch-days'),hourEl=document.querySelector('#launch-hours'),minuteEl=document.querySelector('#launch-minutes');
+    function updateCountdown(){const remaining=Math.max(0,launchAt-Date.now()),days=Math.floor(remaining/86400000),hours=Math.floor(remaining%86400000/3600000),minutes=Math.floor(remaining%3600000/60000);if(dayEl)dayEl.textContent=String(days).padStart(2,'0');if(hourEl)hourEl.textContent=String(hours).padStart(2,'0');if(minuteEl)minuteEl.textContent=String(minutes).padStart(2,'0')}
+    updateCountdown();setInterval(updateCountdown,30000);
+    const leadForm=document.querySelector('#prelaunch-form'),formStatus=document.querySelector('#form-status'),formWrap=document.querySelector('.prelaunch-form-wrap'),successPanel=document.querySelector('#prelaunch-success'),successTitle=document.querySelector('#success-title'),successPharmacy=document.querySelector('#success-pharmacy'),successEmail=document.querySelector('#success-email'),registerAnother=document.querySelector('#register-another'),supabaseUrl='https://bjdzivfwjxplbufqedko.supabase.co',supabaseKey='sb_publishable_BwhwfQFF5pBZuzusS14XIg_Nj-QTnsL';
+    const showFormStatus=(type,message)=>{formStatus.className='form-status show '+type;formStatus.textContent=message};
+    const completeRegistration=(payload,duplicate=false)=>{successTitle.textContent=duplicate?'¡Tu acceso ya estaba reservado!':'¡Ya estás dentro!';successPharmacy.textContent=payload.farmacia;successEmail.textContent=payload.email;successPanel.setAttribute('aria-hidden','false');leadForm.setAttribute('aria-hidden','true');formWrap.classList.add('is-complete');leadForm.reset();setTimeout(()=>successTitle.focus(),760)};
+    if(registerAnother)registerAnother.addEventListener('click',()=>{formWrap.classList.remove('is-complete');successPanel.setAttribute('aria-hidden','true');leadForm.removeAttribute('aria-hidden');formStatus.className='form-status';formStatus.textContent='';setTimeout(()=>document.querySelector('#lead-name').focus(),760)});
+    if(leadForm)leadForm.addEventListener('submit',async event=>{event.preventDefault();if(!leadForm.reportValidity())return;const data=new FormData(leadForm),submitButton=leadForm.querySelector('.form-submit'),idleLabel=submitButton.innerHTML;if(data.get('website')){leadForm.reset();return}const payload={nombre:String(data.get('nombre')).trim(),email:String(data.get('email')).trim().toLowerCase(),telefono:String(data.get('telefono')).trim(),farmacia:String(data.get('farmacia')).trim(),rut:String(data.get('rut')).trim(),comuna:String(data.get('comuna')).trim(),interes:String(data.get('interes')),consentimiento:data.get('consentimiento')==='true'};submitButton.disabled=true;submitButton.textContent='Guardando preinscripción…';showFormStatus('loading','Estamos guardando tus datos de forma segura…');try{const response=await fetch(supabaseUrl+'/rest/v1/preinscripciones',{method:'POST',headers:{apikey:supabaseKey,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(payload)});if(response.ok){completeRegistration(payload)}else if(response.status===409){completeRegistration(payload,true)}else{throw new Error('No fue posible guardar la preinscripción')}}catch(error){showFormStatus('error','No pudimos completar el registro. Revisa tu conexión e inténtalo nuevamente.')}finally{submitButton.disabled=false;submitButton.innerHTML=idleLabel}});
+    const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches,stepsStory=document.querySelector('.steps-story'),storySteps=[...document.querySelectorAll('.steps-story .step')],mobileStory=window.matchMedia('(max-width: 960px)');
+    const setStoryStage=stage=>storySteps.forEach((step,index)=>{step.classList.toggle('is-active',index<=stage);step.classList.toggle('is-current',index===stage)});
+    const updateStory=()=>{if(!stepsStory||!storySteps.length||mobileStory.matches)return;const rect=stepsStory.getBoundingClientRect(),headerOffset=76,travelled=Math.max(0,headerOffset-rect.top),range=Math.max(1,stepsStory.offsetHeight-window.innerHeight),progress=Math.max(0,Math.min(1,travelled/range)),stage=Math.min(storySteps.length-1,Math.floor(progress*storySteps.length));setStoryStage(stage)};
+    const typeWord=document.querySelector('.type-word'),typedText=document.querySelector('.typed-text');
+    if(typeWord&&typedText){if(reduced){typeWord.classList.add('typed-complete')}else{const word=typeWord.dataset.text;typedText.textContent='';typeWord.classList.add('typing');let letter=0;setTimeout(function write(){typedText.textContent=word.slice(0,++letter);if(letter<word.length)setTimeout(write,92);else setTimeout(()=>{typeWord.classList.remove('typing');typeWord.classList.add('typed-complete')},320)},420)}}
+    if(reduced){document.querySelectorAll('.reveal').forEach(el=>el.classList.add('visible'));setStoryStage(storySteps.length-1)}else{const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');observer.unobserve(entry.target)}}),{threshold:.12});document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));if(mobileStory.matches){const stepObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){const index=storySteps.indexOf(entry.target);storySteps.slice(0,index+1).forEach(step=>step.classList.add('is-active'));storySteps.forEach((step,stepIndex)=>step.classList.toggle('is-current',stepIndex===index));stepObserver.unobserve(entry.target)}}),{threshold:.35,rootMargin:'0px 0px -8%'});storySteps.forEach(step=>stepObserver.observe(step))}const heroVisual=document.querySelector('.hero-visual'),operationPhoto=document.querySelector('.operations-image img');let motionFrame=false;const updateMotion=()=>{if(heroVisual)heroVisual.style.setProperty('--hero-shift',Math.min(window.scrollY*.025,16)+'px');if(operationPhoto){const rect=operationPhoto.parentElement.getBoundingClientRect(),delta=(window.innerHeight/2)-(rect.top+rect.height/2),shift=Math.max(-16,Math.min(16,delta*.035));operationPhoto.style.setProperty('--image-shift',shift+'px')}updateStory();motionFrame=false};const queueMotion=()=>{if(!motionFrame){motionFrame=true;requestAnimationFrame(updateMotion)}};window.addEventListener('scroll',queueMotion,{passive:true});window.addEventListener('resize',queueMotion);updateMotion()}
+  </script>
 </body>
 </html>
