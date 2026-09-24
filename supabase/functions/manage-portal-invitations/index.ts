@@ -8,9 +8,16 @@ const ALLOWED_ORIGINS = new Set([
 ]);
 
 type RequestBody = {
-  action?: "list" | "approve";
+  action?: "list" | "approve" | "manual_invite";
   preinscripcionId?: string;
   tier?: "acceso" | "socio";
+  contactName?: string;
+  email?: string;
+  phone?: string;
+  pharmacyName?: string;
+  rut?: string;
+  commune?: string;
+  consent?: boolean;
 };
 
 function corsHeaders(origin: string | null) {
@@ -51,6 +58,10 @@ function readNamedKey(name: "SUPABASE_PUBLISHABLE_KEYS" | "SUPABASE_SECRET_KEYS"
 
 function normalizeRut(value: string) {
   return value.toUpperCase().replace(/[^0-9K]/g, "");
+}
+
+function clean(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
 }
 
 function publicInviteError(message: string) {
@@ -137,6 +148,68 @@ Deno.serve(async (req: Request) => {
     }
 
     return json(origin, { preinscripciones: data ?? [] });
+  }
+
+  if (body.action === "manual_invite") {
+    const contactName = clean(body.contactName);
+    const email = clean(body.email).toLowerCase();
+    const phone = clean(body.phone);
+    const pharmacyName = clean(body.pharmacyName);
+    const rut = normalizeRut(clean(body.rut));
+    const commune = clean(body.commune);
+    const tier = body.tier === "socio" ? "socio" : "acceso";
+
+    if (contactName.length < 2 || contactName.length > 120) {
+      return json(origin, { error: "Ingresa el nombre completo del contacto." }, 422);
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 180) {
+      return json(origin, { error: "El correo del cliente no es válido." }, 422);
+    }
+    if (phone.length < 8 || phone.length > 30) {
+      return json(origin, { error: "El teléfono debe tener entre 8 y 30 caracteres." }, 422);
+    }
+    if (pharmacyName.length < 2 || pharmacyName.length > 160) {
+      return json(origin, { error: "Ingresa el nombre de la farmacia." }, 422);
+    }
+    if (!/^[0-9]{7,8}[0-9K]$/.test(rut)) {
+      return json(origin, { error: "El RUT de la farmacia no es válido." }, 422);
+    }
+    if (commune.length < 2 || commune.length > 100) {
+      return json(origin, { error: "Ingresa la comuna de la farmacia." }, 422);
+    }
+    if (body.consent !== true) {
+      return json(origin, { error: "Confirma la autorización del cliente antes de invitarlo." }, 422);
+    }
+
+    const { data: registration, error: registrationError } = await admin
+      .from("preinscripciones")
+      .insert({
+        nombre: contactName,
+        email,
+        telefono: phone,
+        farmacia: pharmacyName,
+        rut,
+        comuna: commune,
+        interes: tier === "socio" ? "PLO Socio" : "PLO Acceso",
+        consentimiento: true,
+        source: "admin_manual",
+      })
+      .select("id")
+      .single();
+
+    if (registrationError || !registration) {
+      console.error("Unable to create manual pre-registration", registrationError);
+      if (registrationError?.code === "23505") {
+        return json(origin, {
+          error: "Ese correo ya está registrado. Búscalo en la tabla para aprobarlo o revisar su estado.",
+        }, 409);
+      }
+      return json(origin, { error: "No fue posible registrar la invitación manual." }, 500);
+    }
+
+    body.action = "approve";
+    body.preinscripcionId = registration.id;
+    body.tier = tier;
   }
 
   if (body.action !== "approve") {
