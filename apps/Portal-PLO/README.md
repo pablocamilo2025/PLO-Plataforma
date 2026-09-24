@@ -6,6 +6,8 @@ Portal B2B de liquidación farmacéutica para PLO Droguería. Acceso exclusivo p
 
 - **Login real con Supabase Auth** mediante correo y contraseña definida por el cliente
 - **Acceso solo por invitación**, recuperación de clave y sesión persistente
+- **Consola de onboarding** en `/admin.html` para revisar preinscripciones y aprobar farmacias
+- **Invitaciones desde una Edge Function protegida** por sesión y rol `portal_admin`
 - **RLS por farmacia** para perfiles, membresías y sucursales
 - **Tour de bienvenida** de 6 pasos al iniciar sesión
 - **Catálogo** con 16 SKUs reales, filtros por categoría, búsqueda y ordenamiento
@@ -27,7 +29,23 @@ El proyecto Supabase `PLO Farma` contiene:
 - `pharmacy_memberships`: relación entre usuario, farmacia y rol.
 - `branches`: sucursales visibles únicamente para miembros activos.
 
+La función `manage-portal-invitations` es la única responsable de aprobar una
+preinscripción y llamar a la API administrativa de Auth. Verifica el JWT del
+operador y exige `app_metadata.role = portal_admin`; la clave secreta permanece
+en el entorno de Supabase y nunca se entrega al navegador.
+
+Al aprobar una solicitud se crean, dentro de una operación de base de datos, la
+farmacia activa, el perfil, la membresía de propietario y la trazabilidad de la
+invitación en `preinscripciones`.
+
 Las credenciales se administran en Supabase Auth. PLO no crea, almacena ni puede leer las contraseñas de sus clientes. La clave secreta o `service_role` nunca debe incluirse en el navegador.
+
+## Requisito antes de invitar clientes reales
+
+Supabase exige un SMTP propio para entregar invitaciones a direcciones que no
+pertenecen al equipo del proyecto. Configura un proveedor transaccional (por
+ejemplo Resend) y un remitente del dominio `plofarma.cl` en Authentication →
+Emails → SMTP Settings antes de usar **Aprobar e invitar** con farmacias reales.
 
 ## Deploy
 

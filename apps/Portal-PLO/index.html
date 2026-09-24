@@ -1067,6 +1067,10 @@ async function loadPortalSession(session){
   if(!session?.user||sessionLoading)return;
   sessionLoading=true;
   try{
+    if(session.user.app_metadata?.role==='portal_admin'){
+      window.location.replace(new URL('admin.html',window.location.href).href);
+      return;
+    }
     const [profileResult,membershipResult]=await Promise.all([
       authClient.from('profiles')
         .select('full_name,status')

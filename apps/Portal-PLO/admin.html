@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>PloFarma — Aprobación de farmacias</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --forest:#103f34;--forest-2:#195a48;--lime:#b8ed42;--cream:#f7f5ef;
+      --paper:#fffdf8;--ink:#12211c;--muted:#66756f;--line:#d9e2dd;
+      --amber:#b66508;--red:#b8322b;--green:#1f795f;--shadow:0 18px 50px rgba(16,63,52,.12)
+    }
+    *{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,#f7f5ef 0%,#f0f6f0 60%,#eef8e9 100%);color:var(--ink);font-family:Inter,system-ui,sans-serif;min-height:100vh}
+    button,input,select{font:inherit}button{cursor:pointer}.mono{font-family:"IBM Plex Mono",monospace}
+    .login{min-height:100vh;display:grid;place-items:center;padding:24px}.login-card{width:min(440px,100%);background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:34px;box-shadow:var(--shadow)}
+    .brand{display:flex;align-items:center;gap:14px;margin-bottom:26px}.brand img{width:125px;height:auto;object-fit:contain}.brand b{display:none}.brand small{display:block;color:var(--muted);margin-top:2px}
+    h1,h2{font-family:Archivo,sans-serif;margin:0}.login-card h1{font-size:1.75rem}.intro{color:var(--muted);line-height:1.65;margin:10px 0 24px}.field{margin-bottom:15px}.field label{display:block;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--forest);margin-bottom:7px}.field input,.field select{width:100%;border:1px solid var(--line);border-radius:12px;background:white;padding:12px 13px;color:var(--ink);outline:none}.field input:focus,.field select:focus{border-color:var(--forest-2);box-shadow:0 0 0 3px rgba(25,90,72,.1)}
+    .btn{border:0;border-radius:12px;padding:12px 17px;font-weight:700;transition:.18s ease}.btn-primary{background:var(--forest);color:white}.btn-primary:hover{background:var(--forest-2);transform:translateY(-1px)}.btn-primary:disabled{opacity:.55;cursor:not-allowed;transform:none}.btn-ghost{background:white;color:var(--forest);border:1px solid var(--line)}.btn-sm{padding:8px 11px;font-size:.76rem}
+    .message{display:none;border-radius:11px;padding:10px 12px;font-size:.82rem;line-height:1.5;margin:14px 0}.message.show{display:block}.message.error{background:#fff0ee;color:var(--red);border:1px solid #f2cac5}.message.ok{background:#eaf7f1;color:var(--green);border:1px solid #c9e9db}.message.info{background:#fff6e7;color:var(--amber);border:1px solid #efd7ae}
+    .app{display:none}.topbar{background:var(--forest);color:white;position:sticky;top:0;z-index:10}.topbar-in{max-width:1320px;margin:auto;display:flex;align-items:center;gap:16px;padding:13px 24px}.topbar .brand{margin:0}.topbar .brand img{width:112px;height:auto;filter:brightness(0) invert(1)}.topbar .brand small{color:#bcd2ca}.top-actions{margin-left:auto;display:flex;align-items:center;gap:12px}.operator{font-size:.78rem;text-align:right;color:#dcebe5}.operator b{display:block;color:white}
+    main{max-width:1320px;margin:auto;padding:34px 24px 80px}.page-head{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:24px;flex-wrap:wrap}.page-head h1{font-size:clamp(1.8rem,3vw,2.6rem)}.page-head p{color:var(--muted);margin:6px 0 0}.notice{background:#fff7e6;border:1px solid #ecd7a7;border-radius:15px;padding:14px 16px;color:#785018;font-size:.83rem;line-height:1.6;margin-bottom:20px}.notice b{color:#57380f}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}.stat{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 8px 24px rgba(16,63,52,.06)}.stat span{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}.stat b{display:block;font:700 1.8rem "IBM Plex Mono",monospace;color:var(--forest);margin-top:5px}
+    .panel{background:var(--paper);border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:var(--shadow)}.panel-head{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;flex-wrap:wrap}.panel-head h2{font-size:1rem}.search{margin-left:auto;display:flex;gap:8px}.search input,.search select{border:1px solid var(--line);background:white;border-radius:10px;padding:9px 11px;color:var(--ink)}
+    .table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:1120px}th{background:#f1f5f1;color:var(--forest);font:600 .66rem "IBM Plex Mono",monospace;text-align:left;text-transform:uppercase;letter-spacing:.06em;padding:12px;border-bottom:1px solid var(--line)}td{padding:13px 12px;border-bottom:1px solid #e7ece9;vertical-align:top;font-size:.81rem}tr:last-child td{border-bottom:0}.pharmacy{font-weight:700}.sub{display:block;color:var(--muted);font-size:.72rem;margin-top:3px}.status{display:inline-flex;border-radius:100px;padding:5px 9px;font:600 .65rem "IBM Plex Mono",monospace}.status.nuevo{background:#eef4ff;color:#315f9f}.status.validado{background:#e5f5ed;color:var(--green)}.status.contactado{background:#fff3df;color:var(--amber)}.status.descartado{background:#f4eeee;color:#86514d}.tier{width:105px;border:1px solid var(--line);border-radius:9px;padding:7px;background:white}.actions{display:flex;align-items:center;gap:7px}.empty{text-align:center;padding:54px 20px;color:var(--muted)}.loading{text-align:center;padding:42px;color:var(--muted)}
+    .toast{position:fixed;right:24px;bottom:24px;max-width:380px;background:var(--forest);color:white;border-radius:13px;padding:13px 16px;box-shadow:var(--shadow);transform:translateY(20px);opacity:0;pointer-events:none;transition:.25s;z-index:30;font-size:.84rem}.toast.show{transform:none;opacity:1}
+    @media(max-width:720px){.stats{grid-template-columns:1fr}.operator{display:none}.search{width:100%;margin-left:0}.search input{flex:1}.topbar-in,main{padding-left:16px;padding-right:16px}}
+  </style>
+</head>
+<body>
+  <section class="login" id="login-view">
+    <div class="login-card">
+      <div class="brand"><img src="images/plo-farma-logo.png" alt="PloFarma"><div><b>PloFarma</b><small>Administración del portal</small></div></div>
+      <h1>Aprobación de farmacias</h1>
+      <p class="intro">Acceso exclusivo para operadores autorizados. Desde aquí podrás validar una preinscripción y enviar la invitación segura al cliente.</p>
+      <form id="login-form">
+        <div class="field"><label for="email">Correo administrativo</label><input id="email" type="email" autocomplete="username" required></div>
+        <div class="field"><label for="password">Contraseña</label><input id="password" type="password" autocomplete="current-password" required></div>
+        <button class="btn btn-primary" id="login-button" type="submit" style="width:100%">Ingresar al panel</button>
+      </form>
+      <div class="message" id="login-message" role="alert"></div>
+    </div>
+  </section>
+
+  <div class="app" id="app-view">
+    <header class="topbar"><div class="topbar-in">
+      <div class="brand"><img src="images/plo-farma-logo.png" alt="PloFarma"><div><b>PloFarma</b><small>Onboarding de clientes</small></div></div>
+      <div class="top-actions"><div class="operator"><b id="operator-email">—</b><span>Portal Admin</span></div><button class="btn btn-ghost btn-sm" id="logout-button" type="button">Salir</button></div>
+    </div></header>
+    <main>
+      <div class="page-head"><div><h1>Preinscripciones</h1><p>Valida la farmacia, elige su nivel comercial y envía el acceso.</p></div><button class="btn btn-ghost" id="refresh-button" type="button">↻ Actualizar</button></div>
+      <div class="notice"><b>Correo transaccional pendiente:</b> antes de invitar clientes reales conecta un SMTP propio en Supabase. Sin ese ajuste, el servicio por defecto solo entrega correos a integrantes autorizados del proyecto.</div>
+      <div class="stats"><div class="stat"><span>Nuevas</span><b id="stat-new">0</b></div><div class="stat"><span>Invitadas</span><b id="stat-invited">0</b></div><div class="stat"><span>Total recibido</span><b id="stat-total">0</b></div></div>
+      <section class="panel">
+        <div class="panel-head"><h2>Solicitudes recibidas</h2><div class="search"><input id="search-input" type="search" placeholder="Buscar farmacia o correo"><select id="status-filter"><option value="all">Todos los estados</option><option value="nuevo">Nuevas</option><option value="contactado">Contactadas</option><option value="validado">Invitadas</option><option value="descartado">Descartadas</option></select></div></div>
+        <div id="table-content" class="loading">Cargando preinscripciones…</div>
+      </section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js" integrity="sha384-q36VSR1ktH2hgqgm+0LDeyqPW8CyZHSxfDSttSPm5ReOJzB+sYThmh7D4fE+jWTs" crossorigin="anonymous"></script>
+  <script>
+    const SUPABASE_URL='https://bjdzivfwjxplbufqedko.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY='sb_publishable_BwhwfQFF5pBZuzusS14XIg_Nj-QTnsL';
+    const client=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    const $=id=>document.getElementById(id);
+    let registrations=[];
+    let toastTimer;
+
+    function escapeHtml(value){return String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));}
+    function formatDate(value){return value?new Date(value).toLocaleString('es-CL',{dateStyle:'medium',timeStyle:'short'}):'—';}
+    function showMessage(id,type,text){const el=$(id);el.className=`message show ${type}`;el.textContent=text;}
+    function clearMessage(id){const el=$(id);el.className='message';el.textContent='';}
+    function toast(text){$('toast').textContent=text;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),3800);}
+    function preferredTier(item){return item.approved_tier||(item.interes==='PLO Socio'?'socio':'acceso');}
+
+    async function invoke(body){
+      const {data,error}=await client.functions.invoke('manage-portal-invitations',{body});
+      if(error){
+        let message=error.message||'No fue posible completar la operación.';
+        try{const context=await error.context?.json();if(context?.error)message=context.error;}catch{}
+        throw new Error(message);
+      }
+      if(data?.error)throw new Error(data.error);
+      return data;
+    }
+
+    async function requireAdmin(session){
+      if(!session){showLogin();return false;}
+      const {data,error}=await client.auth.getUser();
+      const user=data?.user;
+      if(error||!user){await client.auth.signOut();showLogin();return false;}
+      if(user.app_metadata?.role!=='portal_admin'){
+        await client.auth.signOut();showLogin();showMessage('login-message','error','Esta cuenta no tiene permiso de administración.');return false;
+      }
+      $('operator-email').textContent=user.email||'Administrador';
+      $('login-view').style.display='none';$('app-view').style.display='block';
+      await loadRegistrations();
+      return true;
+    }
+
+    function showLogin(){$('app-view').style.display='none';$('login-view').style.display='grid';}
+
+    async function loadRegistrations(){
+      $('table-content').className='loading';$('table-content').textContent='Cargando preinscripciones…';
+      try{
+        const data=await invoke({action:'list'});
+        registrations=data.preinscripciones||[];
+        renderStats();renderTable();
+      }catch(error){$('table-content').className='empty';$('table-content').textContent=error.message;}
+    }
+
+    function renderStats(){
+      $('stat-new').textContent=registrations.filter(item=>item.estado==='nuevo').length;
+      $('stat-invited').textContent=registrations.filter(item=>Boolean(item.invited_at)).length;
+      $('stat-total').textContent=registrations.length;
+    }
+
+    function renderTable(){
+      const query=$('search-input').value.trim().toLowerCase();
+      const status=$('status-filter').value;
+      const rows=registrations.filter(item=>{
+        const matchesStatus=status==='all'||item.estado===status;
+        const haystack=`${item.farmacia} ${item.nombre} ${item.email} ${item.rut}`.toLowerCase();
+        return matchesStatus&&(!query||haystack.includes(query));
+      });
+      if(!rows.length){$('table-content').className='empty';$('table-content').textContent=registrations.length?'No hay resultados para este filtro.':'Todavía no hay preinscripciones.';return;}
+      $('table-content').className='table-wrap';
+      $('table-content').innerHTML=`<table><thead><tr><th>Farmacia</th><th>Contacto</th><th>RUT / comuna</th><th>Interés</th><th>Estado</th><th>Recibida</th><th>Nivel</th><th>Acción</th></tr></thead><tbody>${rows.map(item=>{
+        const invited=Boolean(item.auth_user_id);
+        const statusLabel=invited?'Invitada':item.estado;
+        return `<tr><td><span class="pharmacy">${escapeHtml(item.farmacia)}</span><span class="sub">${escapeHtml(item.nombre)}</span></td><td>${escapeHtml(item.email)}<span class="sub">${escapeHtml(item.telefono)}</span></td><td><span class="mono">${escapeHtml(item.rut)}</span><span class="sub">${escapeHtml(item.comuna)}</span></td><td>${escapeHtml(item.interes)}</td><td><span class="status ${escapeHtml(item.estado)}">${escapeHtml(statusLabel)}</span></td><td>${escapeHtml(formatDate(item.created_at))}</td><td><select class="tier" data-tier="${item.id}" ${invited?'disabled':''}><option value="acceso" ${preferredTier(item)==='acceso'?'selected':''}>PLO Acceso</option><option value="socio" ${preferredTier(item)==='socio'?'selected':''}>PLO Socio</option></select></td><td><div class="actions"><button class="btn btn-primary btn-sm" data-approve="${item.id}" ${invited?'disabled':''}>${invited?'Invitación enviada':'Aprobar e invitar'}</button></div></td></tr>`;
+      }).join('')}</tbody></table>`;
+      document.querySelectorAll('[data-approve]').forEach(button=>button.addEventListener('click',()=>approve(button.dataset.approve,button)));
+    }
+
+    async function approve(id,button){
+      const item=registrations.find(row=>row.id===id);if(!item)return;
+      const tier=document.querySelector(`[data-tier="${id}"]`)?.value==='socio'?'socio':'acceso';
+      if(!window.confirm(`¿Aprobar ${item.farmacia} y enviar una invitación a ${item.email}?`))return;
+      button.disabled=true;button.textContent='Enviando…';
+      try{const result=await invoke({action:'approve',preinscripcionId:id,tier});toast(result.message||'Invitación enviada.');await loadRegistrations();}
+      catch(error){toast(error.message);button.disabled=false;button.textContent='Aprobar e invitar';}
+    }
+
+    $('login-form').addEventListener('submit',async event=>{
+      event.preventDefault();clearMessage('login-message');
+      const button=$('login-button');button.disabled=true;button.textContent='Ingresando…';
+      const email=$('email').value.trim().toLowerCase(),password=$('password').value;
+      try{const {data,error}=await client.auth.signInWithPassword({email,password});if(error)throw error;await requireAdmin(data.session);}
+      catch{showMessage('login-message','error','No fue posible ingresar. Revisa tus credenciales y permisos.');}
+      finally{button.disabled=false;button.textContent='Ingresar al panel';}
+    });
+    $('logout-button').addEventListener('click',async()=>{await client.auth.signOut();showLogin();});
+    $('refresh-button').addEventListener('click',loadRegistrations);
+    $('search-input').addEventListener('input',renderTable);
+    $('status-filter').addEventListener('change',renderTable);
+    client?.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT')showLogin();else if(event==='SIGNED_IN'&&session)requireAdmin(session);});
+    (async()=>{if(!client){showMessage('login-message','error','Supabase no está disponible.');return;}const {data}=await client.auth.getSession();if(data.session)await requireAdmin(data.session);})();
+  </script>
+</body>
+</html>
