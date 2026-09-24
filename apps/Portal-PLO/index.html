@@ -1004,6 +1004,7 @@ const authClient=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE
   auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
 });
 let sessionLoading=false;
+let credentialSetupActive=false;
 
 function unitPrice(p){
   /* Precio de liquidación único para todos los niveles. Solo aplica descuento de oferta relámpago. */
@@ -1023,6 +1024,24 @@ function setLoginBusy(busy,label='Validando acceso…'){
   const button=$('btn-login');
   button.disabled=busy;
   button.textContent=busy?label:'Entrar al portal →';
+}
+function getAuthRedirectParams(){
+  const searchParams=new URLSearchParams(location.search);
+  const hashParams=new URLSearchParams(location.hash.replace(/^#/,''));
+  const get=name=>hashParams.get(name)||searchParams.get(name);
+  return {
+    type:get('type'),
+    errorCode:get('error_code'),
+    errorDescription:get('error_description')
+  };
+}
+function passwordUpdateErrorMessage(error){
+  if(error?.code==='same_password')return 'La nueva clave debe ser distinta de tu clave actual.';
+  if(error?.code==='weak_password')return 'Elige una clave más segura, de al menos 12 caracteres.';
+  if(error?.code==='otp_expired'||error?.code==='session_not_found'){
+    return 'El enlace de recuperación venció o ya fue utilizado. Solicita uno nuevo.';
+  }
+  return 'No pudimos guardar la nueva clave. Solicita otro enlace si el problema continúa.';
 }
 function formatRut(rut){
   const clean=String(rut||'').replace(/[^0-9Kk]/g,'').toUpperCase();
@@ -1142,9 +1161,10 @@ $('password-setup-form').addEventListener('submit',async()=>{
   const {data,error}=await authClient.auth.updateUser({password});
   if(error){
     button.disabled=false; button.textContent='Guardar clave y continuar →';
-    setAuthMessage('password-setup-error','El enlace venció o no pudimos guardar la clave. Solicita una nueva invitación.');
+    setAuthMessage('password-setup-error',passwordUpdateErrorMessage(error));
     return;
   }
+  credentialSetupActive=false;
   history.replaceState({},document.title,location.pathname);
   const {data:sessionData}=await authClient.auth.getSession();
   await loadPortalSession(sessionData.session||{user:data.user});
@@ -1160,17 +1180,28 @@ async function initAuth(){
     setAuthMessage('login-err','No pudimos iniciar el servicio de acceso. Recarga la página.');
     return;
   }
-  const credentialSetupLink=/(?:type=invite|type=recovery)/.test(`${location.hash}${location.search}`);
+  const authRedirect=getAuthRedirectParams();
+  const credentialSetupLink=authRedirect.type==='invite'||authRedirect.type==='recovery';
+  const authLinkFailed=Boolean(authRedirect.errorCode);
+  credentialSetupActive=credentialSetupLink&&!authLinkFailed;
   authClient.auth.onAuthStateChange((event,session)=>{
     setTimeout(()=>{
       if(event==='SIGNED_OUT'){resetPortalState();return;}
-      if(event==='PASSWORD_RECOVERY'||credentialSetupLink){showPasswordSetup();return;}
+      if(authLinkFailed)return;
+      if(event==='PASSWORD_RECOVERY')credentialSetupActive=true;
+      if(credentialSetupActive){showPasswordSetup();return;}
       if((event==='SIGNED_IN'||event==='INITIAL_SESSION')&&session)loadPortalSession(session);
     },0);
   });
   const {data,error}=await authClient.auth.getSession();
   if(error){setAuthMessage('login-err','No pudimos restaurar tu sesión. Vuelve a ingresar.');return;}
-  if(credentialSetupLink&&data.session){showPasswordSetup();return;}
+  if(authLinkFailed){
+    history.replaceState({},document.title,location.pathname);
+    showLoginForm();
+    setAuthMessage('login-err','El enlace de recuperación venció o ya fue utilizado. Solicita uno nuevo.');
+    return;
+  }
+  if(credentialSetupActive&&data.session){showPasswordSetup();return;}
   if(data.session)await loadPortalSession(data.session);
 }
 initAuth();
