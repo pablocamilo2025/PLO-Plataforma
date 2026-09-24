@@ -85,13 +85,14 @@ input,select{font-family:inherit}
 .fgroup input:focus{border-color:var(--emerald)}
 .btn-primary{width:100%;border:none;border-radius:12px;background:var(--forest);color:white;font-weight:700;font-size:.98rem;padding:14px;margin-top:8px;transition:transform .15s ease,box-shadow .2s ease,background .2s ease}
 .btn-primary:hover{background:var(--forest-2);transform:translateY(-2px);box-shadow:0 12px 30px rgba(18,55,43,.22)}
+.btn-primary:disabled{opacity:.62;cursor:wait;transform:none;box-shadow:none}
 .login-err{display:none;font-size:.78rem;color:var(--red);margin-top:12px;text-align:center}
-.demo-access{margin-top:26px;padding-top:22px;border-top:1px dashed var(--line)}
-.demo-access .da-title{font-family:'IBM Plex Mono',monospace;font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--sky);margin-bottom:12px}
-.demo-user{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;background:rgba(255,254,249,.88);border:1px solid var(--line);border-radius:11px;padding:11px 14px;margin-bottom:9px;color:var(--text);transition:border-color .2s,transform .15s}
-.demo-user:hover{border-color:rgba(18,55,43,.4);transform:translateX(3px)}
-.demo-user .du-name{font-size:.85rem;font-weight:600;text-align:left}
-.demo-user .du-rut{font-family:'IBM Plex Mono',monospace;font-size:.66rem;color:var(--muted);display:block;font-weight:400}
+.login-err.is-success{color:var(--emerald)}
+.login-actions{display:flex;justify-content:center;margin-top:14px}
+.login-link{border:0;background:transparent;color:var(--emerald);font-weight:700;font-size:.78rem;padding:4px 8px;text-decoration:underline;text-underline-offset:3px}
+.login-link:hover{color:var(--forest)}
+.auth-help{font-size:.72rem;line-height:1.55;color:var(--muted);text-align:center;margin-top:18px;padding-top:16px;border-top:1px dashed var(--line)}
+.auth-panel[hidden]{display:none}
 .mvp-chip{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.1em;color:var(--amber);border:1px solid rgba(245,184,65,.35);padding:3px 10px;border-radius:100px;margin-bottom:6px}
 
 /* ===== APP SHELL ===== */
@@ -614,32 +615,37 @@ input,select{font-family:inherit}
 
   <div class="login-form-wrap">
     <div class="login-card">
-      <span class="mvp-chip">MVP · LOGIN SIMULADO</span>
+      <span class="mvp-chip">ACCESO SEGURO · CLIENTES PLO</span>
       <h2>Ingreso de clientes</h2>
-      <p class="sub">Usa tu RUT de empresa y clave asignada por tu ejecutivo.</p>
+      <p class="sub">Ingresa con el correo invitado por PLO y la clave que tú mismo definiste.</p>
       <form id="login-form" onsubmit="return false">
         <div class="fgroup">
-          <label for="f-rut">RUT empresa</label>
-          <input id="f-rut" type="text" placeholder="76.543.210-K" autocomplete="off">
+          <label for="f-email">Correo</label>
+          <input id="f-email" type="email" placeholder="compras@tufarmacia.cl" autocomplete="username" required>
         </div>
         <div class="fgroup">
           <label for="f-pass">Clave</label>
-          <input id="f-pass" type="password" placeholder="••••••••">
+          <input id="f-pass" type="password" placeholder="••••••••••••" autocomplete="current-password" required>
         </div>
-        <button class="btn-primary" id="btn-login">Entrar al portal →</button>
-        <p class="login-err" id="login-err">Completa RUT y clave para continuar.</p>
+        <button class="btn-primary" id="btn-login" type="submit">Entrar al portal →</button>
+        <p class="login-err" id="login-err" role="status" aria-live="polite"></p>
+        <div class="login-actions">
+          <button class="login-link" id="btn-forgot" type="button">Olvidé mi clave</button>
+        </div>
       </form>
-      <div class="demo-access">
-        <div class="da-title">▮ Acceso rápido de demostración</div>
-        <button class="demo-user" data-user="0">
-          <span class="du-name">Farmacia San Martín <span class="du-rut">RUT 76.543.210-K</span></span>
-          <span class="tier-badge socio">Socio</span>
-        </button>
-        <button class="demo-user" data-user="1">
-          <span class="du-name">Farmacias Vecinas SpA <span class="du-rut">RUT 78.120.334-9</span></span>
-          <span class="tier-badge acceso">Acceso</span>
-        </button>
-      </div>
+      <form class="auth-panel" id="password-setup-form" onsubmit="return false" hidden>
+        <div class="fgroup">
+          <label for="f-new-pass">Crea tu nueva clave</label>
+          <input id="f-new-pass" type="password" placeholder="Mínimo 12 caracteres" autocomplete="new-password" minlength="12" required>
+        </div>
+        <div class="fgroup">
+          <label for="f-new-pass-confirm">Repite tu nueva clave</label>
+          <input id="f-new-pass-confirm" type="password" placeholder="Repite tu clave" autocomplete="new-password" minlength="12" required>
+        </div>
+        <button class="btn-primary" id="btn-set-password" type="submit">Guardar clave y continuar →</button>
+        <p class="login-err" id="password-setup-error" role="status" aria-live="polite"></p>
+      </form>
+      <p class="auth-help">¿Aún no tienes acceso? PLO debe validar tu farmacia y enviarte una invitación. Nunca te pediremos compartir tu contraseña.</p>
     </div>
   </div>
 </div>
@@ -925,6 +931,7 @@ input,select{font-family:inherit}
 
 <div class="toast" id="toast"><span class="ok">✓</span><span id="toast-msg"></span></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js" integrity="sha384-q36VSR1ktH2hgqgm+0LDeyqPW8CyZHSxfDSttSPm5ReOJzB+sYThmh7D4fE+jWTs" crossorigin="anonymous"></script>
 <script>
 /* ================= DATOS MOCK ================= */
 const TIERS = {
@@ -933,10 +940,6 @@ const TIERS = {
   socio:{label:'Socio', full:'PLO Socio', shipGoal:50000,
     desc:'Tienes acceso a todos los servicios PLO: Protocolo de Venta completo, Radar de Precios semanal, kits de vitrina y redes, ejecutivo directo y ventana anticipada de 24 h en lotes nuevos.'}
 };
-const USERS = [
-  {name:'Farmacia San Martín', rut:'76.543.210-K', tier:'socio'},
-  {name:'Farmacias Vecinas SpA', rut:'78.120.334-9', tier:'acceso'}
-];
 /* Servicios: min = nivel mínimo requerido */
 const SERVICIOS = [
   {ico:'📋', name:'Protocolo de Venta PLO', min:'acceso', tagAcceso:'Versión básica',
@@ -994,6 +997,13 @@ const SEED_ORDERS = [
 let user=null, cart={}, orders=[...SEED_ORDERS], activeCat='Todos';
 const $=id=>document.getElementById(id);
 const clp=n=>'$'+Math.round(n).toLocaleString('es-CL');
+const SUPABASE_URL='https://bjdzivfwjxplbufqedko.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_BwhwfQFF5pBZuzusS14XIg_Nj-QTnsL';
+const PORTAL_URL='https://portal.plofarma.cl/';
+const authClient=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
+  auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+});
+let sessionLoading=false;
 
 function unitPrice(p){
   /* Precio de liquidación único para todos los niveles. Solo aplica descuento de oferta relámpago. */
@@ -1003,6 +1013,44 @@ function marginPct(p){ return Math.round((1-unitPrice(p)/p.pvp)*100); }
 function vencWarn(v){ return (new Date(v)-new Date())/864e5 < 120; }
 
 /* ================= LOGIN ================= */
+function setAuthMessage(id,message,type='error'){
+  const el=$(id);
+  el.textContent=message;
+  el.classList.toggle('is-success',type==='success');
+  el.style.display=message?'block':'none';
+}
+function setLoginBusy(busy,label='Validando acceso…'){
+  const button=$('btn-login');
+  button.disabled=busy;
+  button.textContent=busy?label:'Entrar al portal →';
+}
+function formatRut(rut){
+  const clean=String(rut||'').replace(/[^0-9Kk]/g,'').toUpperCase();
+  if(clean.length<2)return clean;
+  const body=clean.slice(0,-1).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+  return `${body}-${clean.slice(-1)}`;
+}
+function showPasswordSetup(){
+  $('login-form').hidden=true;
+  $('password-setup-form').hidden=false;
+  document.querySelector('.login-card h2').textContent='Define tu clave';
+  document.querySelector('.login-card .sub').textContent='La clave la defines tú. PLO nunca podrá verla ni recuperarla.';
+  setAuthMessage('password-setup-error','');
+}
+function showLoginForm(){
+  $('login-form').hidden=false;
+  $('password-setup-form').hidden=true;
+  document.querySelector('.login-card h2').textContent='Ingreso de clientes';
+  document.querySelector('.login-card .sub').textContent='Ingresa con el correo invitado por PLO y la clave que tú mismo definiste.';
+}
+function resetPortalState(){
+  user=null; cart={}; orders=[...SEED_ORDERS]; referrals=1;
+  $('app-view').style.display='none';
+  $('login-view').style.display='grid';
+  $('f-pass').value='';
+  showLoginForm();
+  showView('catalogo');
+}
 function doLogin(u){
   user=u;
   $('login-view').style.display='none';
@@ -1015,19 +1063,113 @@ function doLogin(u){
   window.scrollTo(0,0);
   setTimeout(startTour,450);
 }
-document.querySelectorAll('.demo-user').forEach(b=>b.addEventListener('click',()=>doLogin(USERS[+b.dataset.user])));
-$('btn-login').addEventListener('click',()=>{
-  const r=$('f-rut').value.trim(), p=$('f-pass').value.trim();
-  if(!r||!p){ $('login-err').style.display='block'; return; }
-  $('login-err').style.display='none';
-  doLogin({name:'Farmacia Demo', rut:r, tier:'acceso'});
+async function loadPortalSession(session){
+  if(!session?.user||sessionLoading)return;
+  sessionLoading=true;
+  try{
+    const [profileResult,membershipResult]=await Promise.all([
+      authClient.from('profiles')
+        .select('full_name,status')
+        .eq('user_id',session.user.id)
+        .maybeSingle(),
+      authClient.from('pharmacy_memberships')
+        .select('role,status,pharmacies!inner(id,rut,display_name,tier,status)')
+        .eq('user_id',session.user.id)
+        .eq('status','active')
+        .limit(1)
+        .maybeSingle()
+    ]);
+    if(profileResult.error)throw profileResult.error;
+    if(membershipResult.error)throw membershipResult.error;
+    const profile=profileResult.data;
+    const membership=membershipResult.data;
+    const pharmacy=Array.isArray(membership?.pharmacies)?membership.pharmacies[0]:membership?.pharmacies;
+    if(!profile||profile.status!=='active'||!membership||!pharmacy||pharmacy.status!=='active'){
+      throw new Error('Tu cuenta todavía no tiene acceso activo al Portal PLO. Contacta a tu ejecutivo.');
+    }
+    if(!TIERS[pharmacy.tier])throw new Error('El nivel comercial de la farmacia no es válido.');
+    setAuthMessage('login-err','');
+    doLogin({name:pharmacy.display_name,rut:formatRut(pharmacy.rut),tier:pharmacy.tier,role:membership.role,buyer:profile.full_name});
+  }catch(error){
+    await authClient.auth.signOut();
+    resetPortalState();
+    setAuthMessage('login-err',error.message||'No pudimos validar el acceso de esta cuenta.');
+  }finally{
+    sessionLoading=false;
+    setLoginBusy(false);
+  }
+}
+
+$('login-form').addEventListener('submit',async()=>{
+  const email=$('f-email').value.trim().toLowerCase();
+  const password=$('f-pass').value;
+  if(!email||!password){setAuthMessage('login-err','Completa tu correo y clave para continuar.');return;}
+  if(!authClient){setAuthMessage('login-err','El servicio de acceso no está disponible. Intenta nuevamente.');return;}
+  setAuthMessage('login-err','');
+  setLoginBusy(true);
+  const {data,error}=await authClient.auth.signInWithPassword({email,password});
+  if(error){
+    setLoginBusy(false);
+    setAuthMessage('login-err','Correo o clave incorrectos. Revisa tus datos o recupera tu clave.');
+    return;
+  }
+  await loadPortalSession(data.session);
 });
-$('btn-logout').addEventListener('click',()=>{
-  user=null; cart={}; orders=[...SEED_ORDERS]; referrals=1;
-  $('app-view').style.display='none'; $('login-view').style.display='grid';
-  $('f-rut').value=''; $('f-pass').value='';
-  showView('catalogo');
+
+$('btn-forgot').addEventListener('click',async()=>{
+  const email=$('f-email').value.trim().toLowerCase();
+  if(!email){setAuthMessage('login-err','Escribe tu correo para enviarte el enlace de recuperación.');return;}
+  if(!authClient){setAuthMessage('login-err','El servicio de acceso no está disponible. Intenta nuevamente.');return;}
+  const button=$('btn-forgot'),label=button.textContent;
+  button.disabled=true; button.textContent='Enviando…';
+  const {error}=await authClient.auth.resetPasswordForEmail(email,{redirectTo:PORTAL_URL});
+  button.disabled=false; button.textContent=label;
+  if(error){setAuthMessage('login-err','No pudimos enviar el enlace. Espera un momento e inténtalo nuevamente.');return;}
+  setAuthMessage('login-err','Si el correo tiene acceso, recibirá un enlace para definir una nueva clave.','success');
 });
+
+$('password-setup-form').addEventListener('submit',async()=>{
+  const password=$('f-new-pass').value;
+  const confirmPassword=$('f-new-pass-confirm').value;
+  if(password.length<12){setAuthMessage('password-setup-error','La clave debe tener al menos 12 caracteres.');return;}
+  if(password!==confirmPassword){setAuthMessage('password-setup-error','Las claves no coinciden.');return;}
+  const button=$('btn-set-password');
+  button.disabled=true; button.textContent='Guardando clave…';
+  const {data,error}=await authClient.auth.updateUser({password});
+  if(error){
+    button.disabled=false; button.textContent='Guardar clave y continuar →';
+    setAuthMessage('password-setup-error','El enlace venció o no pudimos guardar la clave. Solicita una nueva invitación.');
+    return;
+  }
+  history.replaceState({},document.title,location.pathname);
+  const {data:sessionData}=await authClient.auth.getSession();
+  await loadPortalSession(sessionData.session||{user:data.user});
+});
+
+$('btn-logout').addEventListener('click',async()=>{
+  if(authClient)await authClient.auth.signOut();
+  resetPortalState();
+});
+
+async function initAuth(){
+  if(!authClient){
+    setAuthMessage('login-err','No pudimos iniciar el servicio de acceso. Recarga la página.');
+    return;
+  }
+  const credentialSetupLink=/(?:type=invite|type=recovery)/.test(`${location.hash}${location.search}`);
+  authClient.auth.onAuthStateChange((event,session)=>{
+    setTimeout(()=>{
+      if(event==='SIGNED_OUT'){resetPortalState();return;}
+      if(event==='PASSWORD_RECOVERY'||credentialSetupLink){showPasswordSetup();return;}
+      if((event==='SIGNED_IN'||event==='INITIAL_SESSION')&&session)loadPortalSession(session);
+    },0);
+  });
+  const {data,error}=await authClient.auth.getSession();
+  if(error){setAuthMessage('login-err','No pudimos restaurar tu sesión. Vuelve a ingresar.');return;}
+  if(credentialSetupLink&&data.session){showPasswordSetup();return;}
+  if(data.session)await loadPortalSession(data.session);
+}
+initAuth();
 
 /* ================= CATÁLOGO ================= */
 function renderCats(){
