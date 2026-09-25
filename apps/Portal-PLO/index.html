@@ -520,6 +520,7 @@ input,select{font-family:inherit}
 .status.pendiente{color:#a75900;border-color:rgba(167,89,0,.35);background:rgba(245,184,65,.12)}
 .status.prep{color:var(--amber);border-color:rgba(245,184,65,.4);background:rgba(245,184,65,.08)}
 .status.confirmado{color:var(--emerald);border-color:rgba(18,55,43,.35);background:rgba(18,55,43,.08)}
+.status.listo{color:#875300;border-color:rgba(182,101,8,.32);background:rgba(245,184,65,.12)}
 .status.ruta{color:var(--sky);border-color:rgba(76,141,115,.4);background:rgba(76,141,115,.08)}
 .status.entregado{color:var(--emerald);border-color:rgba(18,55,43,.4);background:rgba(18,55,43,.08)}
 .status.cancelado{color:#a3291e;border-color:rgba(163,41,30,.3);background:rgba(163,41,30,.07)}
@@ -1064,7 +1065,7 @@ function mapCatalogItem(item){
 function mapOrder(order){
   const statusMap={
     awaiting_payment:['pendiente',0], submitted:['pendiente',0], confirmed:['confirmado',1], preparing:['prep',2],
-    in_transit:['ruta',3], delivered:['entregado',4], cancelled:['cancelado',0]
+    ready_for_dispatch:['listo',3], in_transit:['ruta',4], delivered:['entregado',5], cancelled:['cancelado',0]
   };
   const [estado,prog]=statusMap[order.status]||statusMap.submitted;
   const paymentLabels={cash:'Efectivo · retiro en bodega',bank_transfer:'Transferencia · en validación',khipu:'Khipu'};
@@ -1178,6 +1179,10 @@ async function loadPortalSession(session){
   try{
     if(session.user.app_metadata?.role==='portal_admin'){
       window.location.replace(new URL('admin.html',window.location.href).href);
+      return;
+    }
+    if(session.user.app_metadata?.role==='warehouse_operator'){
+      window.location.replace(new URL('bodega.html',window.location.href).href);
       return;
     }
     const {profileResult,membershipResult}=await loadPortalAccess(session.user.id);
@@ -1751,8 +1756,8 @@ function showOrderConfirmation(metodo,order){
 }
 
 /* ================= PEDIDOS ================= */
-const ESTADOS={pendiente:'Pendiente de pago',confirmado:'Pago confirmado',prep:'En preparación',ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'};
-const ORDER_STEPS=['Pedido recibido','Pago confirmado','En preparación','En ruta','Entregado'];
+const ESTADOS={pendiente:'Pendiente de pago',confirmado:'Pago confirmado',prep:'En preparación',listo:'Listo para despacho',ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'};
+const ORDER_STEPS=['Pedido recibido','Pago confirmado','En preparación','Listo para despacho','En ruta','Entregado'];
 function orderProgress(order){
   if(order.estado==='cancelado')return '<div class="order-cancelled-progress">Pedido cancelado · reserva liberada</div>';
   return `<div class="order-progress" aria-label="Progreso del pedido">${ORDER_STEPS.map((label,index)=>{
