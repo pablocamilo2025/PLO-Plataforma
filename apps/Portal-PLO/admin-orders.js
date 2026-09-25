@@ -1,6 +1,6 @@
 /* Admin-only UI. All authorizations and state transitions are checked server-side. */
 (() => {
-  const statusNames={awaiting_payment:'Pendiente de pago',submitted:'Recibido',confirmed:'Pago confirmado',preparing:'En preparación',in_transit:'En ruta',delivered:'Entregado',cancelled:'Cancelado'};
+  const statusNames={awaiting_payment:'Pendiente de pago',submitted:'Recibido',confirmed:'Pago confirmado',preparing:'En preparación',ready_for_dispatch:'Listo para despacho',in_transit:'En ruta',delivered:'Entregado',cancelled:'Cancelado'};
   const paymentNames={cash:'Efectivo · retiro',bank_transfer:'Transferencia',khipu:'Khipu'};
   const actionNames={confirm_payment:'Aprobar comprobante y registrar pago',reject_receipt:'Rechazar comprobante',prepare:'Pasar a preparación',dispatch:'Marcar despachado',deliver:'Marcar entregado',cancel:'Cancelar y devolver stock'};
   const clp=value=>new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0}).format(value);
@@ -41,9 +41,11 @@
       if(o.payment_method==='bank_transfer')return receipt?.status==='pending_review'?['confirm_payment','reject_receipt','cancel']:['cancel'];
       return ['confirm_payment','cancel'];
     }
+    if(o.payment_method==='cash'&&o.payment_status==='pending'&&['preparing','ready_for_dispatch'].includes(o.status))return ['confirm_payment','cancel'];
     if(o.payment_status!=='paid')return [];
     if(o.status==='confirmed')return o.payment_method==='cash'?['prepare','deliver']:['prepare'];
-    if(o.status==='preparing')return [o.payment_method==='cash'?'deliver':'dispatch'];
+    if(o.status==='preparing')return [];
+    if(o.status==='ready_for_dispatch')return o.payment_status==='paid'?[o.payment_method==='cash'?'deliver':'dispatch']:[];
     if(o.status==='in_transit')return ['deliver'];
     return [];
   }
