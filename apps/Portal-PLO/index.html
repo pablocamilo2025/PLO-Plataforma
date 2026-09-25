@@ -528,6 +528,9 @@ input,select{font-family:inherit}
 .oc-track{display:flex;gap:5px;flex:1;max-width:280px}
 .oc-track i{flex:1;height:5px;border-radius:100px;background:rgba(18,55,43,.08)}
 .oc-track i.on{background:linear-gradient(90deg,var(--emerald),var(--lime))}
+.receipt-box{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:14px 0;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(18,55,43,.025)}
+.receipt-copy{display:flex;gap:10px;align-items:flex-start;min-width:220px;flex:1}.receipt-icon{width:34px;height:34px;border-radius:9px;background:rgba(18,55,43,.09);display:grid;place-items:center;flex:none}.receipt-copy b{display:block;font-size:.78rem}.receipt-copy small{display:block;color:var(--muted);font-size:.7rem;margin-top:3px}.receipt-copy small.rejected{color:#a3291e}.receipt-action{border:1px solid var(--emerald);border-radius:9px;background:var(--forest);color:white;font-weight:700;font-size:.74rem;padding:9px 12px}.receipt-action.secondary{background:white;color:var(--forest)}.receipt-action:disabled{opacity:.58;cursor:wait}
+@media(max-width:620px){.receipt-box{align-items:stretch}.receipt-action{width:100%}}
 
 /* ===== Tour guiado ===== */
 #tour-overlay{position:fixed;inset:0;z-index:200;display:none;pointer-events:auto}
@@ -1058,7 +1061,9 @@ function mapOrder(order){
   };
   const [estado,prog]=statusMap[order.status]||statusMap.submitted;
   const paymentLabels={cash:'Efectivo · retiro en bodega',bank_transfer:'Transferencia · en validación',khipu:'Khipu'};
+  const receipt=Array.isArray(order.payment_receipts)?order.payment_receipts[0]:order.payment_receipts;
   return {
+    id:order.id,
     num:order.order_number,
     fecha:new Date(order.created_at).toLocaleDateString('es-CL',{day:'numeric',month:'short',year:'numeric'}),
     items:(order.order_items||[]).map(item=>`${item.product_name.split(' ×')[0]} ×${item.quantity}`).join(' · '),
@@ -1068,6 +1073,9 @@ function mapOrder(order){
     pago:order.payment_status==='paid'?'pagado':'pendiente',
     tx:order.payment_reference||'',
     banco:order.payment_method==='khipu'?'Khipu':'',
+    rawStatus:order.status,
+    paymentMethod:order.payment_method,
+    receipt:receipt||null,
     metodoLabel:paymentLabels[order.payment_method]||'',
     reservaHasta:order.expires_at||''
   };
@@ -1084,7 +1092,7 @@ async function loadPortalData(){
         .order('category',{ascending:true})
         .order('name',{ascending:true}),
       authClient.from('orders')
-        .select('order_number,created_at,status,payment_status,payment_method,payment_reference,grand_total,expires_at,order_items(product_name,quantity)')
+        .select('id,order_number,created_at,status,payment_status,payment_method,payment_reference,grand_total,expires_at,order_items(product_name,quantity),payment_receipts(status,original_name,updated_at,rejection_reason)')
         .order('created_at',{ascending:false})
         .limit(100)
     ]);
@@ -1737,6 +1745,15 @@ function showOrderConfirmation(metodo,order){
 
 /* ================= PEDIDOS ================= */
 const ESTADOS={pendiente:'Pendiente de pago',prep:'En preparación',ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'};
+function receiptBlock(order){
+  if(order.paymentMethod!=='bank_transfer')return '';
+  const receipt=order.receipt;
+  if(receipt?.status==='approved'||order.pago==='pagado')return `<div class="receipt-box"><div class="receipt-copy"><span class="receipt-icon">✓</span><div><b>Comprobante aprobado</b><small>${escapeHTML(receipt?.original_name||'Transferencia validada por PLO')}</small></div></div></div>`;
+  if(order.rawStatus!=='awaiting_payment')return '';
+  if(receipt?.status==='pending_review')return `<div class="receipt-box"><div class="receipt-copy"><span class="receipt-icon">⌛</span><div><b>Comprobante enviado · En revisión</b><small>${escapeHTML(receipt.original_name)} · ${escapeHTML(new Date(receipt.updated_at).toLocaleString('es-CL',{dateStyle:'short',timeStyle:'short'}))}</small></div></div><button class="receipt-action secondary" data-receipt-order="${order.id}">Reemplazar archivo</button></div>`;
+  if(receipt?.status==='rejected')return `<div class="receipt-box"><div class="receipt-copy"><span class="receipt-icon">!</span><div><b>Comprobante rechazado</b><small class="rejected">${escapeHTML(receipt.rejection_reason||'Adjunta un nuevo respaldo para revisión.')}</small></div></div><button class="receipt-action" data-receipt-order="${order.id}">Subir nuevo comprobante</button></div>`;
+  return `<div class="receipt-box"><div class="receipt-copy"><span class="receipt-icon">⇧</span><div><b>Sube tu comprobante de transferencia</b><small>PDF, JPG, PNG o WebP · máximo 6 MB</small></div></div><button class="receipt-action" data-receipt-order="${order.id}">Subir comprobante</button></div>`;
+}
 function renderOrders(){
   if(!orders.length){
     $('orders-list').innerHTML='<div class="empty" style="display:block">Todavía no hay pedidos registrados para esta farmacia.</div>';
@@ -1754,11 +1771,44 @@ function renderOrders(){
       ${o.tx?`<div style="font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--muted);margin-bottom:10px">khipu · ${escapeHTML(o.tx)} · ${escapeHTML(o.banco)}</div>`:''}
       ${o.metodoLabel?`<div style="font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--muted);margin-bottom:10px">${escapeHTML(o.metodoLabel)}</div>`:''}
       ${o.estado==='pendiente'&&o.reservaHasta?`<div style="font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:#a75900;margin-bottom:10px">Stock reservado hasta ${escapeHTML(new Date(o.reservaHasta).toLocaleString('es-CL',{dateStyle:'short',timeStyle:'short'}))}</div>`:''}
+      ${receiptBlock(o)}
       <div class="oc-bottom">
         <div class="oc-track">${[1,2,3].map(s=>`<i class="${s<=o.prog?'on':''}"></i>`).join('')}</div>
         <div class="oc-total">${clp(o.total)} <span style="font-size:.68rem;color:var(--muted);font-weight:400">IVA incl.</span></div>
       </div>
     </div>`).join('');
+  document.querySelectorAll('[data-receipt-order]').forEach(button=>button.addEventListener('click',()=>choosePaymentReceipt(Number(button.dataset.receiptOrder),button)));
+}
+
+function choosePaymentReceipt(orderId,button){
+  const input=document.createElement('input');
+  input.type='file';
+  input.accept='.pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/jpeg,image/png,image/webp';
+  input.addEventListener('change',()=>{
+    const file=input.files?.[0];
+    if(file)uploadPaymentReceipt(orderId,file,button);
+  },{once:true});
+  input.click();
+}
+
+async function uploadPaymentReceipt(orderId,file,button){
+  const allowed=['application/pdf','image/jpeg','image/png','image/webp'];
+  const allowedExtension=/\.(pdf|jpe?g|png|webp)$/i.test(file.name);
+  if(file.type&&!allowed.includes(file.type)||!file.type&&!allowedExtension){toast('Usa un archivo PDF, JPG, PNG o WebP.');return;}
+  if(file.size<1||file.size>6*1024*1024){toast('El archivo debe pesar como máximo 6 MB.');return;}
+  const label=button.textContent;
+  button.disabled=true;button.textContent='Subiendo…';
+  const form=new FormData();form.append('orderId',String(orderId));form.append('file',file);
+  const {data,error}=await authClient.functions.invoke('upload-payment-receipt',{body:form});
+  if(error||!data?.receipt){
+    button.disabled=false;button.textContent=label;
+    let message='No pudimos subir el comprobante. Intenta nuevamente.';
+    try{const payload=await error?.context?.json();if(payload?.error)message=payload.error;}catch{}
+    toast(escapeHTML(message));return;
+  }
+  const portalData=await loadPortalData().catch(()=>null);
+  if(portalData){PRODUCTS=portalData.products;orders=portalData.orders;renderOrders();}
+  toast('<b>Comprobante recibido.</b> Lo revisaremos antes de confirmar el pago.');
 }
 
 /* ================= SERVICIOS ================= */
