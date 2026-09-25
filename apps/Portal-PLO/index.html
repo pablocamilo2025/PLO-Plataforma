@@ -519,18 +519,25 @@ input,select{font-family:inherit}
 .status{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;padding:4px 12px;border-radius:100px;border:1px solid}
 .status.pendiente{color:#a75900;border-color:rgba(167,89,0,.35);background:rgba(245,184,65,.12)}
 .status.prep{color:var(--amber);border-color:rgba(245,184,65,.4);background:rgba(245,184,65,.08)}
+.status.confirmado{color:var(--emerald);border-color:rgba(18,55,43,.35);background:rgba(18,55,43,.08)}
 .status.ruta{color:var(--sky);border-color:rgba(76,141,115,.4);background:rgba(76,141,115,.08)}
 .status.entregado{color:var(--emerald);border-color:rgba(18,55,43,.4);background:rgba(18,55,43,.08)}
 .status.cancelado{color:#a3291e;border-color:rgba(163,41,30,.3);background:rgba(163,41,30,.07)}
 .oc-items{font-size:.82rem;color:var(--muted);margin-bottom:12px}
 .oc-bottom{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .oc-total{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:1.1rem}
-.oc-track{display:flex;gap:5px;flex:1;max-width:280px}
-.oc-track i{flex:1;height:5px;border-radius:100px;background:rgba(18,55,43,.08)}
-.oc-track i.on{background:linear-gradient(90deg,var(--emerald),var(--lime))}
+.order-progress{display:flex;flex:1;max-width:720px;min-width:480px;margin:8px 0 2px}
+.order-step{position:relative;display:flex;flex:1;flex-direction:column;align-items:center;text-align:center;color:var(--muted);font-size:.64rem;line-height:1.25;padding:0 4px}
+.order-step:not(:last-child)::after{content:"";position:absolute;z-index:0;top:12px;left:calc(50% + 14px);width:calc(100% - 28px);height:3px;border-radius:100px;background:#e7ebe7}
+.order-step.done:not(:last-child)::after{background:linear-gradient(90deg,var(--emerald),var(--lime))}
+.order-step-dot{position:relative;z-index:1;width:26px;height:26px;border:2px solid #dfe6e1;border-radius:50%;background:var(--panel);display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-size:.63rem;font-weight:700;margin-bottom:7px}
+.order-step.done{color:var(--emerald)}.order-step.done .order-step-dot{border-color:var(--emerald);background:var(--emerald);color:white}
+.order-step.current{color:var(--text);font-weight:700}.order-step.current .order-step-dot{border-color:var(--emerald);background:var(--lime);color:var(--forest);box-shadow:0 0 0 5px rgba(190,242,100,.18)}
+.order-cancelled-progress{font-size:.73rem;color:#a3291e;border-left:3px solid #a3291e;padding:8px 11px;background:rgba(163,41,30,.06);border-radius:0 8px 8px 0}
 .receipt-box{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:14px 0;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(18,55,43,.025)}
 .receipt-copy{display:flex;gap:10px;align-items:flex-start;min-width:220px;flex:1}.receipt-icon{width:34px;height:34px;border-radius:9px;background:rgba(18,55,43,.09);display:grid;place-items:center;flex:none}.receipt-copy b{display:block;font-size:.78rem}.receipt-copy small{display:block;color:var(--muted);font-size:.7rem;margin-top:3px}.receipt-copy small.rejected{color:#a3291e}.receipt-action{border:1px solid var(--emerald);border-radius:9px;background:var(--forest);color:white;font-weight:700;font-size:.74rem;padding:9px 12px}.receipt-action.secondary{background:white;color:var(--forest)}.receipt-action:disabled{opacity:.58;cursor:wait}
 @media(max-width:620px){.receipt-box{align-items:stretch}.receipt-action{width:100%}}
+@media(max-width:700px){.oc-bottom{align-items:flex-end}.order-progress{min-width:100%;max-width:none;overflow-x:auto;padding:4px 0 8px}.order-step{min-width:92px;font-size:.6rem}.oc-total{margin-left:auto}}
 
 /* ===== Tour guiado ===== */
 #tour-overlay{position:fixed;inset:0;z-index:200;display:none;pointer-events:auto}
@@ -1056,8 +1063,8 @@ function mapCatalogItem(item){
 }
 function mapOrder(order){
   const statusMap={
-    awaiting_payment:['pendiente',0], submitted:['prep',1], confirmed:['prep',1], preparing:['prep',1],
-    in_transit:['ruta',2], delivered:['entregado',3], cancelled:['cancelado',0]
+    awaiting_payment:['pendiente',0], submitted:['pendiente',0], confirmed:['confirmado',1], preparing:['prep',2],
+    in_transit:['ruta',3], delivered:['entregado',4], cancelled:['cancelado',0]
   };
   const [estado,prog]=statusMap[order.status]||statusMap.submitted;
   const paymentLabels={cash:'Efectivo · retiro en bodega',bank_transfer:'Transferencia · en validación',khipu:'Khipu'};
@@ -1744,7 +1751,15 @@ function showOrderConfirmation(metodo,order){
 }
 
 /* ================= PEDIDOS ================= */
-const ESTADOS={pendiente:'Pendiente de pago',prep:'En preparación',ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'};
+const ESTADOS={pendiente:'Pendiente de pago',confirmado:'Pago confirmado',prep:'En preparación',ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'};
+const ORDER_STEPS=['Pedido recibido','Pago confirmado','En preparación','En ruta','Entregado'];
+function orderProgress(order){
+  if(order.estado==='cancelado')return '<div class="order-cancelled-progress">Pedido cancelado · reserva liberada</div>';
+  return `<div class="order-progress" aria-label="Progreso del pedido">${ORDER_STEPS.map((label,index)=>{
+    const state=index<order.prog?'done':index===order.prog?'current':'';
+    return `<div class="order-step ${state}" ${index===order.prog?'aria-current="step"':''}><span class="order-step-dot">${index<order.prog?'✓':index+1}</span><span>${label}</span></div>`;
+  }).join('')}</div>`;
+}
 function receiptBlock(order){
   if(order.paymentMethod!=='bank_transfer')return '';
   const receipt=order.receipt;
@@ -1773,7 +1788,7 @@ function renderOrders(){
       ${o.estado==='pendiente'&&o.reservaHasta?`<div style="font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:#a75900;margin-bottom:10px">Stock reservado hasta ${escapeHTML(new Date(o.reservaHasta).toLocaleString('es-CL',{dateStyle:'short',timeStyle:'short'}))}</div>`:''}
       ${receiptBlock(o)}
       <div class="oc-bottom">
-        <div class="oc-track">${[1,2,3].map(s=>`<i class="${s<=o.prog?'on':''}"></i>`).join('')}</div>
+        ${orderProgress(o)}
         <div class="oc-total">${clp(o.total)} <span style="font-size:.68rem;color:var(--muted);font-weight:400">IVA incl.</span></div>
       </div>
     </div>`).join('');
