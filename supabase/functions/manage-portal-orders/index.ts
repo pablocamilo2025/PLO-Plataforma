@@ -42,7 +42,7 @@ Deno.serve(async (req: Request) => {
     if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "Solicitud inválida." }, 400);
     const admin = createClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
     if (body.action === "list") {
-      const statuses = ["all", "awaiting_payment", "submitted", "confirmed", "preparing", "in_transit", "delivered", "cancelled"];
+      const statuses = ["all", "awaiting_payment", "submitted", "confirmed", "preparing", "ready_for_dispatch", "in_transit", "delivered", "cancelled"];
       if (!statuses.includes(body.status ?? "all") || (body.search !== undefined && (typeof body.search !== "string" || body.search.length > 120)) ||
         (body.page !== undefined && (!Number.isSafeInteger(body.page) || body.page < 0 || body.page > 100000))) return json({ error: "Filtro inválido." }, 400);
       const { data, error } = await admin.rpc("admin_list_portal_orders", {
