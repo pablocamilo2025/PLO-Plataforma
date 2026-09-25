@@ -350,6 +350,7 @@ input,select{font-family:inherit}
 .pm-list{display:flex;flex-direction:column;gap:10px;margin-bottom:6px}
 .pm-opt{display:flex;align-items:center;gap:14px;background:rgba(255,254,249,.88);border:1px solid var(--line);border-radius:13px;padding:15px 16px;text-align:left;transition:all .2s;position:relative;color:var(--text);font-family:inherit}
 .pm-opt:hover{border-color:rgba(18,55,43,.4);transform:translateX(2px)}
+.pm-opt:disabled{opacity:.58;cursor:not-allowed;transform:none;border-color:var(--line)}
 .pm-opt .pm-ico{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-size:1.2rem;flex:none}
 .pm-opt.efectivo .pm-ico{background:rgba(245,184,65,.14);border:1px solid rgba(245,184,65,.35)}
 .pm-opt.transferencia .pm-ico{background:rgba(76,141,115,.14);border:1px solid rgba(76,141,115,.35)}
@@ -372,7 +373,7 @@ input,select{font-family:inherit}
 .tdata-row b{font-family:'IBM Plex Mono',monospace}
 .tdata-copy{background:transparent;border:none;color:var(--sky);font-size:.66rem;text-decoration:underline;margin-left:8px}
 
-/* ===== Checkout Khipu ===== */
+/* ===== Checkout ===== */
 .pay-page{position:absolute;inset:0;background:linear-gradient(180deg,var(--panel-2),var(--panel));transform:translateX(102%);transition:transform .32s cubic-bezier(.2,.8,.2,1);z-index:5;display:flex;flex-direction:column;overflow-y:auto}
 .pay-page.open{transform:none}
 .pay-page-nav{padding:16px 20px 0;flex:none}
@@ -516,9 +517,11 @@ input,select{font-family:inherit}
 .oc-num{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:1rem;color:var(--mint)}
 .oc-date{font-size:.76rem;color:var(--muted)}
 .status{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;font-weight:600;padding:4px 12px;border-radius:100px;border:1px solid}
+.status.pendiente{color:#a75900;border-color:rgba(167,89,0,.35);background:rgba(245,184,65,.12)}
 .status.prep{color:var(--amber);border-color:rgba(245,184,65,.4);background:rgba(245,184,65,.08)}
 .status.ruta{color:var(--sky);border-color:rgba(76,141,115,.4);background:rgba(76,141,115,.08)}
 .status.entregado{color:var(--emerald);border-color:rgba(18,55,43,.4);background:rgba(18,55,43,.08)}
+.status.cancelado{color:#a3291e;border-color:rgba(163,41,30,.3);background:rgba(163,41,30,.07)}
 .oc-items{font-size:.82rem;color:var(--muted);margin-bottom:12px}
 .oc-bottom{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .oc-total{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:1.1rem}
@@ -968,8 +971,6 @@ const CAT_ICON = {
   'Cardiovascular':'❤️','Diabetes':'🩸','Gastro':'💊','Analgésicos':'🩹',
   'Respiratorio':'🫁','SNC':'🧠','Antibióticos':'🦠','Suplementos':'🌿','Corticoides':'🧴'
 };
-const FLASH_EXTRA = 0.15;
-
 /* ================= ESTADO ================= */
 let user=null, cart={}, PRODUCTS=[], orders=[], activeCat='Todos';
 const $=id=>document.getElementById(id);
@@ -987,8 +988,7 @@ let sessionLoading=false;
 let credentialSetupActive=false;
 
 function unitPrice(p){
-  /* Precio de liquidación único para todos los niveles. Solo aplica descuento de oferta relámpago. */
-  return Math.round(p.flash ? p.precio*(1-FLASH_EXTRA) : p.precio);
+  return Math.round(p.precio*(1-(p.discountPct||0)/100));
 }
 function marginPct(p){ return Math.round((1-unitPrice(p)/p.pvp)*100); }
 function vencWarn(v){ return (new Date(v)-new Date())/864e5 < 120; }
@@ -1046,13 +1046,14 @@ function mapCatalogItem(item){
     stock:item.stock,
     max:item.max_order_quantity,
     flash:item.is_flash,
+    discountPct:item.discount_percent,
     maxLiquidacion:item.is_max_liquidation,
     img:item.image_path
   };
 }
 function mapOrder(order){
   const statusMap={
-    submitted:['prep',1], confirmed:['prep',1], preparing:['prep',1],
+    awaiting_payment:['pendiente',0], submitted:['prep',1], confirmed:['prep',1], preparing:['prep',1],
     in_transit:['ruta',2], delivered:['entregado',3], cancelled:['cancelado',0]
   };
   const [estado,prog]=statusMap[order.status]||statusMap.submitted;
@@ -1067,7 +1068,8 @@ function mapOrder(order){
     pago:order.payment_status==='paid'?'pagado':'pendiente',
     tx:order.payment_reference||'',
     banco:order.payment_method==='khipu'?'Khipu':'',
-    metodoLabel:paymentLabels[order.payment_method]||''
+    metodoLabel:paymentLabels[order.payment_method]||'',
+    reservaHasta:order.expires_at||''
   };
 }
 async function loadPortalData(){
@@ -1078,11 +1080,11 @@ async function loadPortalData(){
     if(retryDelays[attempt])await wait(retryDelays[attempt]);
     [catalogResult,ordersResult]=await Promise.all([
       authClient.from('catalog_items')
-        .select('id,sku,name,laboratory,category,lot_code,expires_on,net_price,reference_price,stock,max_order_quantity,is_flash,is_max_liquidation,image_path')
+        .select('id,sku,name,laboratory,category,lot_code,expires_on,net_price,reference_price,stock,max_order_quantity,is_flash,discount_percent,is_max_liquidation,image_path')
         .order('category',{ascending:true})
         .order('name',{ascending:true}),
       authClient.from('orders')
-        .select('order_number,created_at,status,payment_status,payment_method,payment_reference,grand_total,order_items(product_name,quantity)')
+        .select('order_number,created_at,status,payment_status,payment_method,payment_reference,grand_total,expires_at,order_items(product_name,quantity)')
         .order('created_at',{ascending:false})
         .limit(100)
     ]);
@@ -1178,7 +1180,7 @@ async function loadPortalSession(session){
     PRODUCTS=portalData.products;
     orders=portalData.orders;
     setAuthMessage('login-err','');
-    doLogin({name:pharmacy.display_name,rut:formatRut(pharmacy.rut),tier:pharmacy.tier,role:membership.role,buyer:profile.full_name});
+    doLogin({name:pharmacy.display_name,rut:formatRut(pharmacy.rut),tier:pharmacy.tier,role:membership.role,buyer:profile.full_name,pharmacyId:pharmacy.id});
   }catch(error){
     const temporaryClockSkew=isFutureJwtError(error);
     if(!temporaryClockSkew)await authClient.auth.signOut();
@@ -1530,18 +1532,17 @@ function openCart(o){
 $('btn-cart').addEventListener('click',()=>openCart(true));
 $('drawer-close').addEventListener('click',()=>openCart(false));
 $('overlay').addEventListener('click',()=>openCart(false));
-/* ================= CHECKOUT · KHIPU (MOCK) ================= */
-const BANCOS=[
-  {n:'Banco de Chile', s:'BCH', c:'#0033A0'},
-  {n:'Santander', s:'SAN', c:'#EC0000'},
-  {n:'BancoEstado', s:'EST', c:'#FF6B00'},
-  {n:'BCI', s:'BCI', c:'#F5A623'},
-  {n:'Scotiabank', s:'SCO', c:'#D40029'},
-  {n:'Itaú', s:'ITA', c:'#EC7000'},
-  {n:'Banco Falabella', s:'FAL', c:'#009540'},
-  {n:'Banco BICE', s:'BIC', c:'#003A70'}
-];
+/* ================= CHECKOUT SEGURO ================= */
 let payCtx=null;
+
+function createRequestId(){
+  if(crypto.randomUUID)return crypto.randomUUID();
+  const bytes=crypto.getRandomValues(new Uint8Array(16));
+  bytes[6]=(bytes[6]&15)|64;
+  bytes[8]=(bytes[8]&63)|128;
+  const hex=[...bytes].map(value=>value.toString(16).padStart(2,'0')).join('');
+  return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+}
 
 function openPay(o){
   $('pay-page').classList.toggle('open',o);
@@ -1557,14 +1558,13 @@ $('btn-checkout').addEventListener('click',()=>{
   if(!lines.length){ toast('Agrega productos antes de continuar'); return; }
   const sub=lines.reduce((a,{p,qty})=>a+unitPrice(p)*qty,0);
   const total=Math.round(sub*1.19);
-  const num='OC-2026-0'+(800+orders.length);
-  payCtx={lines,sub,total,num,banco:null,locked:false,metodo:null};
+  payCtx={lines,sub,total,locked:false,metodo:null,clientRequestId:createRequestId(),order:null};
   openPay(true); payStepMetodo();
 });
 
 function payStepMetodo(){
   $('pay-title').textContent='Elige cómo pagar';
-  $('pay-desc').textContent=`Orden ${payCtx.num} · ${clp(payCtx.total)}`;
+  $('pay-desc').textContent=`Total estimado · ${clp(payCtx.total)}`;
   $('pay-body').innerHTML=`
     <div class="pay-amount" style="margin-bottom:18px">
       <div class="pa-lbl">Total del pedido</div>
@@ -1582,17 +1582,16 @@ function payStepMetodo(){
         <div class="pm-txt"><b>Transferencia bancaria</b><span>Manual, con validación de comprobante</span></div>
         <span class="pm-arrow">→</span>
       </button>
-      <button class="pm-opt khipu" data-pm="khipu">
+      <button class="pm-opt khipu" disabled>
         <div class="pm-ico">⚡</div>
-        <div class="pm-txt"><b>Khipu</b><span>Transferencia simplificada · acreditación en minutos</span></div>
-        <span class="pm-tag reco">Recomendado</span>
+        <div class="pm-txt"><b>Khipu</b><span>Se habilitará al conectar el pago y su webhook real</span></div>
+        <span class="pm-tag reco">Próximamente</span>
       </button>
     </div>`;
   document.querySelectorAll('[data-pm]').forEach(b=>b.addEventListener('click',()=>{
     payCtx.metodo=b.dataset.pm;
     if(payCtx.metodo==='efectivo') payStepEfectivo();
-    else if(payCtx.metodo==='transferencia') payStepTransferencia();
-    else payStepBanco();
+    else payStepTransferencia();
   }));
 }
 
@@ -1612,142 +1611,132 @@ function payStepEfectivo(){
     <div class="pay-amount" style="margin-bottom:18px">
       <div class="pa-lbl">A pagar al retirar</div>
       <div class="pa-val">${clp(payCtx.total)}</div>
-      <div class="pa-ref">Orden ${payCtx.num}</div>
+      <div class="pa-ref">El número de orden se generará al reservar</div>
     </div>
     <button class="btn-primary" id="pm-back-e" style="background:transparent;border:1px solid var(--line);color:var(--muted);margin-bottom:10px">← Elegir otro método</button>
     <button class="btn-primary" id="efectivo-confirm">Reservar pedido para retiro →</button>`;
   $('pm-back-e').addEventListener('click',payStepMetodo);
-  $('efectivo-confirm').addEventListener('click',()=>finalizarPedido('efectivo'));
+  $('efectivo-confirm').addEventListener('click',()=>finalizarPedido('efectivo','efectivo-confirm'));
 }
 
 function payStepTransferencia(){
   $('pay-title').textContent='Transferencia bancaria';
-  $('pay-desc').textContent='Transfiere y sube tu comprobante';
+  $('pay-desc').textContent='Primero reservaremos el stock de tu pedido';
   $('pay-body').innerHTML=`
+    <div class="pay-amount" style="margin-bottom:16px">
+      <div class="pa-lbl">Monto estimado</div>
+      <div class="pa-val">${clp(payCtx.total)}</div>
+      <div class="pa-ref">El servidor confirmará precio, IVA y stock</div>
+    </div>
+    <div class="pay-note" style="margin-top:0;padding-top:0;border:none">▮ Al reservar recibirás el <b>número de orden</b>, los datos bancarios y la glosa exacta para transferir. La reserva dura 48 horas.</div>
+    <button class="btn-primary" id="pm-back-t" style="background:transparent;border:1px solid var(--line);color:var(--muted);margin:14px 0 10px">← Elegir otro método</button>
+    <button class="btn-primary" id="transf-confirm">Reservar pedido y ver datos →</button>`;
+  $('pm-back-t').addEventListener('click',payStepMetodo);
+  $('transf-confirm').addEventListener('click',()=>finalizarPedido('transferencia','transf-confirm'));
+}
+
+async function edgeFunctionErrorMessage(error){
+  try{
+    const payload=await error?.context?.json();
+    if(payload?.error)return payload.error;
+  }catch{}
+  return 'No pudimos registrar el pedido. Revisa tu conexión e intenta nuevamente.';
+}
+
+async function finalizarPedido(metodo,buttonId){
+  if(payCtx.locked)return;
+  const button=$(buttonId),originalLabel=button.textContent;
+  payCtx.locked=true;
+  $('pay-back').disabled=true;
+  button.disabled=true;
+  button.textContent='Validando precio y stock…';
+
+  const paymentMethod=metodo==='efectivo'?'cash':'bank_transfer';
+  const {data,error}=await authClient.functions.invoke('place-portal-order',{
+    body:{
+      pharmacyId:user.pharmacyId,
+      clientRequestId:payCtx.clientRequestId,
+      paymentMethod,
+      items:payCtx.lines.map(({p,qty})=>({catalogItemId:p.id,quantity:qty}))
+    }
+  });
+
+  if(error||!data?.order){
+    payCtx.locked=false;
+    $('pay-back').disabled=false;
+    button.disabled=false;
+    button.textContent=originalLabel;
+    toast(await edgeFunctionErrorMessage(error));
+    return;
+  }
+
+  payCtx.order=data.order;
+  const portalData=await loadPortalData().catch(()=>null);
+  if(portalData){
+    PRODUCTS=portalData.products;
+    orders=portalData.orders;
+  }
+  cart={};
+  updateCartUI();
+  renderGrid();
+  renderOrders();
+  showOrderConfirmation(metodo,data.order);
+}
+
+function showOrderConfirmation(metodo,order){
+  const number=escapeHTML(order.orderNumber);
+  const expiry=new Date(order.expiresAt).toLocaleString('es-CL',{dateStyle:'medium',timeStyle:'short'});
+  $('pay-back').disabled=true;
+  $('pay-title').textContent='Pedido reservado';
+  $('pay-desc').textContent=`Orden ${order.orderNumber}`;
+  const paymentBlock=metodo==='transferencia'?`
     <div class="tdata">
       <div class="tdata-row"><span>Titular</span><b>PLO Droguería SpA</b></div>
       <div class="tdata-row"><span>RUT</span><b>77.111.222-3</b></div>
       <div class="tdata-row"><span>Banco</span><b>Banco de Chile</b></div>
-      <div class="tdata-row"><span>Cuenta corriente</span><b>00-123-45678-09<button class="tdata-copy" id="copy-cta">copiar</button></b></div>
+      <div class="tdata-row"><span>Cuenta corriente</span><b>00-123-45678-09<button class="tdata-copy" id="copy-account">copiar</button></b></div>
+      <div class="tdata-row"><span>Glosa</span><b>${number}<button class="tdata-copy" id="copy-reference">copiar</button></b></div>
       <div class="tdata-row"><span>Email comprobante</span><b>pagos@plodrogueria.cl</b></div>
-    </div>
-    <div class="pay-amount" style="margin-bottom:16px">
-      <div class="pa-lbl">Monto a transferir</div>
-      <div class="pa-val">${clp(payCtx.total)}</div>
-      <div class="pa-ref">Usa "${payCtx.num}" como glosa/referencia</div>
-    </div>
-    <div class="pay-note" style="margin-top:0;padding-top:0;border:none">▮ Tu pedido queda <b>pendiente de validación</b>. Nuestro equipo confirma el abono en horario hábil y recién ahí pasa a preparación.</div>
-    <button class="btn-primary" id="pm-back-t" style="background:transparent;border:1px solid var(--line);color:var(--muted);margin:14px 0 10px">← Elegir otro método</button>
-    <button class="btn-primary" id="transf-confirm">Ya transferí, confirmar pedido →</button>`;
-  $('pm-back-t').addEventListener('click',payStepMetodo);
-  $('copy-cta').addEventListener('click',()=>{ if(navigator.clipboard) navigator.clipboard.writeText('00123456789').catch(()=>{}); toast('Número de cuenta copiado'); });
-  $('transf-confirm').addEventListener('click',()=>finalizarPedido('transferencia'));
-}
-
-function finalizarPedido(metodo){
-  const items=payCtx.lines.map(({p,qty})=>`${p.name.split(' ×')[0]} ×${qty}`).join(' · ');
-  const meta = metodo==='efectivo'
-    ? {pago:'pendiente', metodoLabel:'Efectivo · retiro en bodega'}
-    : {pago:'pendiente', metodoLabel:'Transferencia · en validación'};
-  orders.unshift({num:payCtx.num, fecha:new Date().toLocaleDateString('es-CL',{day:'numeric',month:'short',year:'numeric'}),
-    items, total:payCtx.total, estado:'prep', prog:1, ...meta});
-  cart={}; updateCartUI(); openPay(false); renderOrders(); showView('pedidos');
-  toast(metodo==='efectivo'
-    ? `Pedido <b>${payCtx.num}</b> reservado para retiro en efectivo.`
-    : `Pedido <b>${payCtx.num}</b> registrado. Validaremos tu transferencia pronto.`);
-  payCtx=null;
-}
-
-function payStepBanco(){
-  $('pay-title').textContent='Pagar con transferencia';
-  $('pay-desc').textContent='Transferencia bancaria simplificada · sin tarjetas';
-  $('pay-body').innerHTML=`
-    <div class="khipu-brand">
-      <span class="khipu-logo">k</span>
-      <span>khipu</span> <small>· pago seguro</small>
-    </div>
-    <div class="pay-amount">
-      <div class="pa-lbl">Total a transferir</div>
-      <div class="pa-val">${clp(payCtx.total)}</div>
-      <div class="pa-ref">Orden ${payCtx.num} · IVA incluido</div>
-    </div>
-    <div class="pay-steps"><i class="on"></i><i></i><i></i></div>
-    <div class="bank-lbl">Selecciona el banco desde el que transferirás:</div>
-    <div class="bank-grid">
-      ${BANCOS.map((b,i)=>`<button class="bank" data-bank="${i}"><i style="background:${b.c}">${b.s}</i>${b.n}</button>`).join('')}
-    </div>
-    <button class="btn-primary" id="pm-back-k" style="background:transparent;border:1px solid var(--line);color:var(--muted);margin-top:14px">← Elegir otro método</button>
-    <div class="pay-secure">🔒 Khipu no almacena tus claves bancarias</div>`;
-  $('pm-back-k').addEventListener('click',payStepMetodo);
-  document.querySelectorAll('[data-bank]').forEach(b=>b.addEventListener('click',()=>{
-    document.querySelectorAll('.bank').forEach(x=>x.classList.remove('sel'));
-    b.classList.add('sel');
-    payCtx.banco=BANCOS[+b.dataset.bank];
-    setTimeout(payStepProcesando,350);
-  }));
-}
-
-function payStepProcesando(){
-  payCtx.locked=true;
-  $('pay-back').disabled=true;
-  $('pay-title').textContent='Procesando pago';
-  $('pay-desc').textContent=`Conectando con ${payCtx.banco.n}`;
-  $('pay-body').innerHTML=`
-    <div class="pay-steps"><i class="on"></i><i class="on"></i><i></i></div>
-    <div class="pay-processing">
-      <div class="spinner"></div>
-      <h4>Verificando la transferencia</h4>
-      <p>No cierres esta ventana</p>
-      <div class="pay-log" id="pay-log"></div>
+    </div>`:`
+    <div class="pickup-box">
+      <b>📍 Retiro y pago en efectivo</b>
+      <p style="font-size:.78rem;color:var(--muted);margin-top:6px">Presenta la orden <b>${number}</b> al retirar en la bodega PLO.</p>
     </div>`;
-  const steps=[
-    `Redirigiendo a ${payCtx.banco.n}…`,
-    'Autenticando pagador…',
-    `Generando transferencia por ${clp(payCtx.total)}…`,
-    'Khipu concilia la operación…',
-    'Webhook recibido · pago acreditado'
-  ];
-  const log=$('pay-log');
-  steps.forEach((s,i)=>setTimeout(()=>{
-    if(log) log.insertAdjacentHTML('beforeend',`<div class="${i===steps.length-1?'ok':''}">${i===steps.length-1?'✓':'▸'} ${s}</div>`);
-  },i*620));
-  setTimeout(payStepOk, steps.length*620+500);
-}
-
-function payStepOk(){
-  payCtx.locked=false;
-  $('pay-back').disabled=true;
-  const idTx='KH-'+Math.random().toString(36).slice(2,10).toUpperCase();
-  $('pay-title').textContent='Pago acreditado';
-  $('pay-desc').textContent='Tu pedido entró a preparación';
   $('pay-body').innerHTML=`
-    <div class="pay-steps"><i class="on"></i><i class="on"></i><i class="on"></i></div>
     <div class="pay-ok">
       <div class="big-check">✓</div>
-      <h4>Transferencia confirmada</h4>
-      <p>Recibirás el comprobante y la factura electrónica en tu correo.</p>
+      <h4>Stock reservado correctamente</h4>
+      <p>La reserva estará vigente hasta ${escapeHTML(expiry)}.</p>
       <div class="pay-receipt">
-        <div class="pr-row"><span>Orden</span><b>${payCtx.num}</b></div>
-        <div class="pr-row"><span>ID transacción Khipu</span><b>${idTx}</b></div>
-        <div class="pr-row"><span>Banco origen</span><b>${payCtx.banco.n}</b></div>
-        <div class="pr-row"><span>Monto</span><b style="color:var(--mint)">${clp(payCtx.total)}</b></div>
-        <div class="pr-row"><span>Estado</span><b style="color:var(--mint)">Acreditado</b></div>
+        <div class="pr-row"><span>Orden</span><b>${number}</b></div>
+        <div class="pr-row"><span>Neto</span><b>${clp(order.netTotal)}</b></div>
+        <div class="pr-row"><span>IVA</span><b>${clp(order.taxTotal)}</b></div>
+        <div class="pr-row"><span>Total</span><b style="color:var(--mint)">${clp(order.grandTotal)}</b></div>
+        <div class="pr-row"><span>Estado</span><b style="color:var(--amber)">Pendiente de pago</b></div>
       </div>
-      <button class="btn-primary" id="pay-done" style="margin-top:0">Ver mi pedido →</button>
-      <div class="pay-note">▮ <b>Simulación MVP.</b> En producción, Khipu crea el cobro vía <b>POST /payments</b> y confirma por webhook a <b>notify_url</b>. El pedido solo se marca como pagado tras validar esa notificación en el servidor.</div>
+      ${paymentBlock}
+      <button class="btn-primary" id="pay-done">Ver mi pedido →</button>
+      <div class="pay-note">▮ Si el pago no se valida antes del vencimiento, la reserva se cancelará y el stock volverá automáticamente al catálogo.</div>
     </div>`;
+  if($('copy-account'))$('copy-account').addEventListener('click',()=>{
+    navigator.clipboard?.writeText('00123456789').catch(()=>{});
+    toast('Número de cuenta copiado');
+  });
+  if($('copy-reference'))$('copy-reference').addEventListener('click',()=>{
+    navigator.clipboard?.writeText(order.orderNumber).catch(()=>{});
+    toast('Glosa de la orden copiada');
+  });
   $('pay-done').addEventListener('click',()=>{
-    const items=payCtx.lines.map(({p,qty})=>`${p.name.split(' ×')[0]} ×${qty}`).join(' · ');
-    orders.unshift({num:payCtx.num, fecha:new Date().toLocaleDateString('es-CL',{day:'numeric',month:'short',year:'numeric'}),
-      items, total:payCtx.total, estado:'prep', prog:1, pago:'pagado', tx:idTx, banco:payCtx.banco.n});
-    cart={}; updateCartUI(); openPay(false); renderOrders(); showView('pedidos');
-    toast(`Pago de <b>${clp(payCtx.total)}</b> acreditado · Orden ${payCtx.num}`);
+    payCtx.locked=false;
+    openPay(false);
+    showView('pedidos');
+    toast(`Pedido <b>${number}</b> registrado y stock reservado.`);
     payCtx=null;
   });
 }
 
 /* ================= PEDIDOS ================= */
-const ESTADOS={prep:'En preparación',ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'};
+const ESTADOS={pendiente:'Pendiente de pago',prep:'En preparación',ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'};
 function renderOrders(){
   if(!orders.length){
     $('orders-list').innerHTML='<div class="empty" style="display:block">Todavía no hay pedidos registrados para esta farmacia.</div>';
@@ -1764,6 +1753,7 @@ function renderOrders(){
       <div class="oc-items">${escapeHTML(o.items)}</div>
       ${o.tx?`<div style="font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--muted);margin-bottom:10px">khipu · ${escapeHTML(o.tx)} · ${escapeHTML(o.banco)}</div>`:''}
       ${o.metodoLabel?`<div style="font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--muted);margin-bottom:10px">${escapeHTML(o.metodoLabel)}</div>`:''}
+      ${o.estado==='pendiente'&&o.reservaHasta?`<div style="font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:#a75900;margin-bottom:10px">Stock reservado hasta ${escapeHTML(new Date(o.reservaHasta).toLocaleString('es-CL',{dateStyle:'short',timeStyle:'short'}))}</div>`:''}
       <div class="oc-bottom">
         <div class="oc-track">${[1,2,3].map(s=>`<i class="${s<=o.prog?'on':''}"></i>`).join('')}</div>
         <div class="oc-total">${clp(o.total)} <span style="font-size:.68rem;color:var(--muted);font-weight:400">IVA incl.</span></div>
