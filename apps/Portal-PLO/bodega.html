@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+  <title>PloFarma — Bodega y Despacho</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="bodega.css">
+</head>
+<body>
+  <section class="login" id="login-view">
+    <div class="login-card"><img src="images/plo-farma-logo.png" alt="PloFarma"><span class="eyebrow">Operación interna</span><h1>Bodega y Despacho</h1><p>Prepara, revisa y despacha los pedidos de las farmacias.</p>
+      <form id="login-form"><label>Correo<input id="email" type="email" autocomplete="username" required></label><label>Contraseña<input id="password" type="password" autocomplete="current-password" required></label><button id="login-button" type="submit">Ingresar a operación →</button></form><div class="message" id="login-message" role="alert"></div>
+    </div>
+  </section>
+  <div class="app" id="app-view">
+    <header><div class="topbar"><img src="images/plo-farma-logo.png" alt="PloFarma"><span>Bodega / Despacho</span><div class="operator"><b id="operator-email">—</b><small>Operación</small></div><button class="ghost" id="logout-button">Salir</button></div></header>
+    <main>
+      <div class="page-head"><div><span class="eyebrow">Centro de operación</span><h1>Pedidos por preparar</h1><p>Todo lo que requiere acción de Bodega y Despacho, en un solo lugar.</p></div><button class="ghost" id="refresh-button">↻ Actualizar</button></div>
+      <section class="stats"><button data-quick="new"><span>Nuevos</span><b id="stat-new">—</b></button><button data-quick="preparing"><span>Preparando</span><b id="stat-preparing">—</b></button><button data-quick="ready_for_dispatch"><span>Listos</span><b id="stat-ready">—</b></button><button data-quick="in_transit"><span>En ruta</span><b id="stat-transit">—</b></button><button data-quick="delivered"><span>Entregados hoy</span><b id="stat-delivered">—</b></button></section>
+      <section class="queue"><div class="queue-head"><div><h2>Cola de trabajo</h2><span id="last-update">—</span></div><form id="filter-form"><input id="search" type="search" maxlength="120" placeholder="Orden, farmacia o RUT"><select id="status-filter"><option value="all">Todas las tareas</option><option value="new">Nuevos</option><option value="preparing">En preparación</option><option value="ready_for_dispatch">Listos para despacho</option><option value="in_transit">En ruta</option><option value="delivered">Entregados hoy</option></select><button class="ghost">Buscar</button></form></div><div id="orders-content" class="loading">Cargando pedidos…</div></section>
+    </main>
+  </div>
+  <dialog id="order-dialog"><div class="dialog-head"><div><span class="eyebrow">Hoja de preparación</span><h2 id="dialog-title">Pedido</h2></div><button class="ghost" id="dialog-close" aria-label="Cerrar">✕</button></div><div id="order-detail"></div></dialog>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js" integrity="sha384-q36VSR1ktH2hgqgm+0LDeyqPW8CyZHSxfDSttSPm5ReOJzB+sYThmh7D4fE+jWTs" crossorigin="anonymous"></script>
+  <script src="bodega.js"></script>
+</body></html>
