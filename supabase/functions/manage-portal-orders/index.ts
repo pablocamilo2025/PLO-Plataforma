@@ -10,6 +10,7 @@ const errors: Record<string, string> = {
   PLO_ORDER_CHANGED: "El pedido cambió desde que lo abriste. Actualiza el detalle antes de continuar.",
   PLO_INVALID_TRANSITION: "Ese cambio no corresponde al estado actual del pedido.",
   PLO_RESERVATION_EXPIRED: "La reserva venció. No registres el pago sobre esta orden; revisa el caso y crea un nuevo pedido.",
+  PLO_RECEIPT_REQUIRED: "El pedido necesita un comprobante pendiente de revisión para completar esta acción.",
   PLO_INVALID_ACTION: "Ingresa un motivo o referencia de entre 3 y 500 caracteres.",
 };
 
@@ -60,15 +61,29 @@ Deno.serve(async (req: Request) => {
       const { data: events, error: eventError } = await admin.from("order_admin_events")
         .select("id,actor_id,action,previous_status,new_status,note,created_at").eq("order_id", body.orderId).order("id");
       if (eventError) throw eventError;
+      const { data: receipt, error: receiptError } = await admin.from("payment_receipts")
+        .select("id,original_name,mime_type,size_bytes,status,rejection_reason,created_at,updated_at,reviewed_at")
+        .eq("order_id", body.orderId).maybeSingle();
+      if (receiptError) throw receiptError;
+      let receiptWithUrl = receipt;
+      if (receipt) {
+        const { data: pathRow, error: pathError } = await admin.from("payment_receipts")
+          .select("storage_path").eq("id", receipt.id).single();
+        if (pathError) throw pathError;
+        const { data: signed, error: signedError } = await admin.storage.from("payment-receipts")
+          .createSignedUrl(pathRow.storage_path, 600);
+        if (signedError) throw signedError;
+        receiptWithUrl = { ...receipt, signed_url: signed.signedUrl };
+      }
       const operators = new Map<string, string>();
       await Promise.all([...new Set((events || []).map(event => event.actor_id))].map(async (id) => {
         const { data } = await admin.auth.admin.getUserById(id);
         operators.set(id, data.user?.email || "Administrador");
       }));
-      return json({ order, events: (events || []).map(event => ({ ...event, actor_label: operators.get(event.actor_id) })) });
+      return json({ order, receipt: receiptWithUrl, events: (events || []).map(event => ({ ...event, actor_label: operators.get(event.actor_id) })) });
     }
     if (body.action === "update") {
-      if (!["confirm_payment", "prepare", "dispatch", "deliver", "cancel"].includes(body.operation) ||
+      if (!["confirm_payment", "reject_receipt", "prepare", "dispatch", "deliver", "cancel"].includes(body.operation) ||
         typeof body.note !== "string" || body.note.trim().length < 3 || body.note.trim().length > 500 ||
         typeof body.expectedUpdatedAt !== "string" || !Number.isFinite(Date.parse(body.expectedUpdatedAt))) return json({ error: "Completa el motivo o referencia de la operación." }, 400);
       const { data, error } = await admin.rpc("admin_update_portal_order", {
