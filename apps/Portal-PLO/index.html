@@ -1025,6 +1025,33 @@ function setLoginBusy(busy,label='Validando acceso…'){
   button.disabled=busy;
   button.textContent=busy?label:'Entrar al portal →';
 }
+function wait(ms){ return new Promise(resolve=>setTimeout(resolve,ms)); }
+function isFutureJwtError(error){
+  return error?.code==='PGRST303'&&String(error.message||'').toLowerCase().includes('jwt issued at future');
+}
+async function loadPortalAccess(userId){
+  const retryDelays=[0,700,1400,2800];
+  let profileResult;
+  let membershipResult;
+  for(let attempt=0;attempt<retryDelays.length;attempt++){
+    if(retryDelays[attempt])await wait(retryDelays[attempt]);
+    [profileResult,membershipResult]=await Promise.all([
+      authClient.from('profiles')
+        .select('full_name,status')
+        .eq('user_id',userId)
+        .maybeSingle(),
+      authClient.from('pharmacy_memberships')
+        .select('role,status,pharmacies!inner(id,rut,display_name,tier,status)')
+        .eq('user_id',userId)
+        .eq('status','active')
+        .limit(1)
+        .maybeSingle()
+    ]);
+    const futureJwt=[profileResult.error,membershipResult.error].some(isFutureJwtError);
+    if(!futureJwt||attempt===retryDelays.length-1)break;
+  }
+  return {profileResult,membershipResult};
+}
 function getAuthRedirectParams(){
   const searchParams=new URLSearchParams(location.search);
   const hashParams=new URLSearchParams(location.hash.replace(/^#/,''));
@@ -1090,18 +1117,7 @@ async function loadPortalSession(session){
       window.location.replace(new URL('admin.html',window.location.href).href);
       return;
     }
-    const [profileResult,membershipResult]=await Promise.all([
-      authClient.from('profiles')
-        .select('full_name,status')
-        .eq('user_id',session.user.id)
-        .maybeSingle(),
-      authClient.from('pharmacy_memberships')
-        .select('role,status,pharmacies!inner(id,rut,display_name,tier,status)')
-        .eq('user_id',session.user.id)
-        .eq('status','active')
-        .limit(1)
-        .maybeSingle()
-    ]);
+    const {profileResult,membershipResult}=await loadPortalAccess(session.user.id);
     if(profileResult.error)throw profileResult.error;
     if(membershipResult.error)throw membershipResult.error;
     const profile=profileResult.data;
@@ -1114,9 +1130,12 @@ async function loadPortalSession(session){
     setAuthMessage('login-err','');
     doLogin({name:pharmacy.display_name,rut:formatRut(pharmacy.rut),tier:pharmacy.tier,role:membership.role,buyer:profile.full_name});
   }catch(error){
-    await authClient.auth.signOut();
+    const temporaryClockSkew=isFutureJwtError(error);
+    if(!temporaryClockSkew)await authClient.auth.signOut();
     resetPortalState();
-    setAuthMessage('login-err',error.message||'No pudimos validar el acceso de esta cuenta.');
+    setAuthMessage('login-err',temporaryClockSkew
+      ?'La sesión está demorando unos segundos en activarse. Recarga la página para continuar.'
+      :(error.message||'No pudimos validar el acceso de esta cuenta.'));
   }finally{
     sessionLoading=false;
     setLoginBusy(false);
