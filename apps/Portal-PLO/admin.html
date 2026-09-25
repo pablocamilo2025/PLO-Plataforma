@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex,nofollow">
-  <title>PloFarma — Aprobación de farmacias</title>
+  <title>PloFarma — Administración</title>
+  <link rel="stylesheet" href="admin-orders.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -36,8 +37,8 @@
   <section class="login" id="login-view">
     <div class="login-card">
       <div class="brand"><img src="images/plo-farma-logo.png" alt="PloFarma"><div><b>PloFarma</b><small>Administración del portal</small></div></div>
-      <h1>Aprobación de farmacias</h1>
-      <p class="intro">Acceso exclusivo para operadores autorizados. Desde aquí podrás validar una preinscripción y enviar la invitación segura al cliente.</p>
+      <h1>Administración del portal</h1>
+      <p class="intro">Gestiona pedidos, registra pagos y administra las invitaciones de tus farmacias.</p>
       <form id="login-form">
         <div class="field"><label for="email">Correo administrativo</label><input id="email" type="email" autocomplete="username" required></div>
         <div class="field"><label for="password">Contraseña</label><input id="password" type="password" autocomplete="current-password" required></div>
@@ -49,10 +50,24 @@
 
   <div class="app" id="app-view">
     <header class="topbar"><div class="topbar-in">
-      <div class="brand"><img src="images/plo-farma-logo.png" alt="PloFarma"><div><b>PloFarma</b><small>Onboarding de clientes</small></div></div>
+      <div class="brand"><img src="images/plo-farma-logo.png" alt="PloFarma"><div><b>PloFarma</b><small>Administración</small></div></div>
       <div class="top-actions"><div class="operator"><b id="operator-email">—</b><span>Portal Admin</span></div><button class="btn btn-ghost btn-sm" id="logout-button" type="button">Salir</button></div>
     </div></header>
     <main>
+      <nav class="admin-tabs" aria-label="Secciones del administrador">
+        <button class="active" id="orders-tab" type="button" aria-current="page">Pedidos</button>
+        <button id="pharmacies-tab" type="button">Farmacias e invitaciones</button>
+      </nav>
+      <section id="orders-section" aria-labelledby="orders-heading">
+        <div class="page-head"><div><span class="section-eyebrow">Operación comercial</span><h1 id="orders-heading">Pedidos</h1><p>Del pedido recibido a la entrega, con cada movimiento registrado.</p></div><button class="btn btn-ghost" id="orders-refresh" type="button">↻ Actualizar pedidos</button></div>
+        <div class="stats"><div class="stat"><span>Pendientes de pago</span><b id="orders-pending">—</b></div><div class="stat"><span>En gestión</span><b id="orders-processing">—</b></div><div class="stat"><span>Entregados</span><b id="orders-delivered">—</b></div></div>
+        <section class="panel">
+          <div class="panel-head"><h2>Órdenes recibidas</h2><form class="search" id="orders-search-form"><input id="orders-search" type="search" maxlength="120" aria-label="Buscar pedido, farmacia o RUT" placeholder="Pedido, farmacia o RUT"><select id="orders-filter" aria-label="Estado del pedido"><option value="all">Todos los estados</option><option value="awaiting_payment">Pendientes de pago</option><option value="confirmed">Pago confirmado</option><option value="preparing">En preparación</option><option value="in_transit">En ruta</option><option value="delivered">Entregados</option><option value="cancelled">Cancelados</option></select><button class="btn btn-ghost btn-sm" type="submit">Buscar</button></form></div>
+          <div id="orders-content" class="loading" role="status">Cargando pedidos…</div>
+          <div class="orders-pagination"><span id="orders-page-label">—</span><div><button id="orders-prev" type="button" class="btn btn-ghost btn-sm" disabled>← Anterior</button><button id="orders-next" type="button" class="btn btn-ghost btn-sm" disabled>Siguiente →</button></div></div>
+        </section>
+      </section>
+      <section id="pharmacies-section" hidden>
       <div class="page-head"><div><h1>Preinscripciones</h1><p>Valida la farmacia, elige su nivel comercial y envía el acceso.</p></div><button class="btn btn-ghost" id="refresh-button" type="button">↻ Actualizar</button></div>
       <section class="invite-card" aria-labelledby="manual-invite-title">
         <div class="invite-card-head"><div><h2 id="manual-invite-title">Invitar farmacia manualmente</h2><p>Para clientes que te entregan sus datos por teléfono o atención directa. El cliente recibirá un correo y definirá personalmente su clave.</p></div><span class="invite-tag">Acceso seguro</span></div>
@@ -73,8 +88,10 @@
         <div class="panel-head"><h2>Solicitudes recibidas</h2><div class="search"><input id="search-input" type="search" placeholder="Buscar farmacia o correo"><select id="status-filter"><option value="all">Todos los estados</option><option value="nuevo">Nuevas</option><option value="contactado">Contactadas</option><option value="validado">Invitadas</option><option value="descartado">Descartadas</option></select></div></div>
         <div id="table-content" class="loading">Cargando preinscripciones…</div>
       </section>
+      </section>
     </main>
   </div>
+  <dialog id="order-dialog" aria-labelledby="order-dialog-title"><header class="order-dialog-head"><div><span class="section-eyebrow">Detalle del pedido</span><h2 id="order-dialog-title">Pedido</h2></div><button type="button" class="btn btn-ghost btn-sm" id="order-close" aria-label="Cerrar detalle">✕</button></header><div id="order-detail" class="order-detail"></div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js" integrity="sha384-q36VSR1ktH2hgqgm+0LDeyqPW8CyZHSxfDSttSPm5ReOJzB+sYThmh7D4fE+jWTs" crossorigin="anonymous"></script>
@@ -114,11 +131,11 @@
       }
       $('operator-email').textContent=user.email||'Administrador';
       $('login-view').style.display='none';$('app-view').style.display='block';
-      await loadRegistrations();
+      await Promise.all([loadRegistrations(),window.portalOrders?.load()]);
       return true;
     }
 
-    function showLogin(){$('app-view').style.display='none';$('login-view').style.display='grid';}
+    function showLogin(){window.portalOrders?.clear();$('app-view').style.display='none';$('login-view').style.display='grid';}
 
     async function loadRegistrations(){
       $('table-content').className='loading';$('table-content').textContent='Cargando preinscripciones…';
@@ -202,8 +219,9 @@
     $('refresh-button').addEventListener('click',loadRegistrations);
     $('search-input').addEventListener('input',renderTable);
     $('status-filter').addEventListener('change',renderTable);
-    client?.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT')showLogin();else if(event==='SIGNED_IN'&&session)requireAdmin(session);});
+    client?.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT')showLogin();else if(event==='SIGNED_IN'&&session)setTimeout(()=>requireAdmin(session),0);});
     (async()=>{if(!client){showMessage('login-message','error','Supabase no está disponible.');return;}const {data}=await client.auth.getSession();if(data.session)await requireAdmin(data.session);})();
   </script>
+  <script src="admin-orders.js"></script>
 </body>
 </html>
