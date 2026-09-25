@@ -745,7 +745,7 @@ input,select{font-family:inherit}
       <div class="flash-strip">
         <div>
           <span class="fs-tag">⚡ OFERTA RELÁMPAGO</span>
-          <div class="fs-name">Losartán 50 mg ×30 — <b>-15% adicional</b> sobre tu precio de nivel</div>
+          <div class="fs-name"><span id="flash-product-name">Oferta disponible para clientes activos</span> — <b>-15% adicional</b></div>
         </div>
         <div class="countdown" id="countdown">
           <div class="cd-cell"><b id="cd-h">00</b><span>hrs</span></div>
@@ -963,40 +963,20 @@ const SERVICIOS = [
   {ico:'💬', name:'Ejecutivo directo', min:'socio',
    desc:'Número de WhatsApp directo con tu ejecutivo y respuesta comprometida en 2 horas hábiles.', cta:'Abrir WhatsApp'}
 ];
-/* precio = precio base tier Estándar (neto). pvp = precio venta público de referencia */
 /* Ícono representativo por categoría (placeholder visual mientras no hay fotos reales de producto) */
 const CAT_ICON = {
   'Cardiovascular':'❤️','Diabetes':'🩸','Gastro':'💊','Analgésicos':'🩹',
   'Respiratorio':'🫁','SNC':'🧠','Antibióticos':'🦠','Suplementos':'🌿','Corticoides':'🧴'
 };
-const PRODUCTS = [
- {sku:'PLO-0142', name:'Losartán 50 mg ×30 comp.', lab:'Lab. Chile', cat:'Cardiovascular', lote:'L-24891', venc:'2026-11-30', precio:1890, pvp:6490, stock:38, max:120, flash:true, maxLiquidacion:true, img:'images/losartan-50mg.jpg'},
- {sku:'PLO-0077', name:'Metformina 850 mg ×60 comp.', lab:'Lab. Chile', cat:'Diabetes', lote:'M-77012', venc:'2027-02-28', precio:2150, pvp:7290, stock:210, max:300, flash:false, img:'images/metformina-850mg.jpg'},
- {sku:'PLO-0203', name:'Atorvastatina 20 mg ×30 comp.', lab:'Lab. Chile', cat:'Cardiovascular', lote:'A-55340', venc:'2026-10-15', precio:2490, pvp:9990, stock:64, max:200, flash:false, maxLiquidacion:true, img:'images/atorvastatina-20mg.jpg'},
- {sku:'PLO-0318', name:'Omeprazol 20 mg ×30 cáps.', lab:'Mintlab', cat:'Gastro', lote:'O-11207', venc:'2027-01-31', precio:990, pvp:4590, stock:420, max:500, flash:false},
- {sku:'PLO-0095', name:'Paracetamol 500 mg ×100 comp.', lab:'Lab. Chile', cat:'Analgésicos', lote:'P-88431', venc:'2027-05-31', precio:1290, pvp:3990, stock:530, max:600, flash:false},
- {sku:'PLO-0261', name:'Ibuprofeno 400 mg ×50 comp.', lab:'Pasteur', cat:'Analgésicos', lote:'I-40987', venc:'2026-12-31', precio:1450, pvp:4890, stock:96, max:250, flash:false},
- {sku:'PLO-0410', name:'Salbutamol inhalador 100 mcg', lab:'GSK', cat:'Respiratorio', lote:'S-20915', venc:'2026-09-30', precio:3290, pvp:8990, stock:22, max:80, flash:true},
- {sku:'PLO-0356', name:'Loratadina 10 mg ×30 comp.', lab:'Mintlab', cat:'Respiratorio', lote:'LT-6644', venc:'2027-03-31', precio:890, pvp:3490, stock:310, max:400, flash:false},
- {sku:'PLO-0188', name:'Sertralina 50 mg ×30 comp.', lab:'Saval', cat:'SNC', lote:'SE-3321', venc:'2026-12-15', precio:2790, pvp:11990, stock:48, max:150, flash:false},
- {sku:'PLO-0522', name:'Amoxicilina 500 mg ×21 cáps.', lab:'Lab. Andrómaco', cat:'Antibióticos', lote:'AX-9910', venc:'2026-10-31', precio:1990, pvp:6290, stock:75, max:180, flash:false},
- {sku:'PLO-0467', name:'Azitromicina 500 mg ×3 comp.', lab:'Pasteur', cat:'Antibióticos', lote:'AZ-1276', venc:'2026-11-15', precio:1690, pvp:5990, stock:19, max:100, flash:true, maxLiquidacion:true},
- {sku:'PLO-0290', name:'Enalapril 10 mg ×30 comp.', lab:'Lab. Chile', cat:'Cardiovascular', lote:'E-50213', venc:'2027-04-30', precio:1090, pvp:4290, stock:260, max:320, flash:false},
- {sku:'PLO-0611', name:'Clonazepam 0,5 mg ×30 comp.*', lab:'Saval', cat:'SNC', lote:'CL-8804', venc:'2026-12-20', precio:1590, pvp:5490, stock:33, max:90, flash:false},
- {sku:'PLO-0344', name:'Vitamina D3 1000 UI ×60 cáps.', lab:'Knop', cat:'Suplementos', lote:'VD-2210', venc:'2027-06-30', precio:2290, pvp:8490, stock:140, max:200, flash:false},
- {sku:'PLO-0578', name:'Insulina glargina 100 U/ml', lab:'Sanofi', cat:'Diabetes', lote:'IG-0034', venc:'2026-09-15', precio:8990, pvp:24990, stock:12, max:60, flash:false},
- {sku:'PLO-0429', name:'Prednisona 20 mg ×20 comp.', lab:'Mintlab', cat:'Corticoides', lote:'PR-7182', venc:'2026-11-30', precio:1190, pvp:4190, stock:88, max:160, flash:false}
-];
 const FLASH_EXTRA = 0.15;
-const SEED_ORDERS = [
- {num:'OC-2026-0781', fecha:'21 jul 2026', items:'Omeprazol ×40 · Paracetamol ×60 · Loratadina ×25', total:187430, estado:'entregado', prog:3, pago:'pagado', tx:'KH-7F2A91C4', banco:'Banco de Chile'},
- {num:'OC-2026-0794', fecha:'24 jul 2026', items:'Atorvastatina ×30 · Metformina ×50', total:164920, estado:'ruta', prog:2, pago:'pagado', tx:'KH-3B8D05EA', banco:'BancoEstado'},
-];
 
 /* ================= ESTADO ================= */
-let user=null, cart={}, orders=[...SEED_ORDERS], activeCat='Todos';
+let user=null, cart={}, PRODUCTS=[], orders=[], activeCat='Todos';
 const $=id=>document.getElementById(id);
 const clp=n=>'$'+Math.round(n).toLocaleString('es-CL');
+const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,char=>({
+  '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+}[char]));
 const SUPABASE_URL='https://bjdzivfwjxplbufqedko.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_BwhwfQFF5pBZuzusS14XIg_Nj-QTnsL';
 const PORTAL_URL='https://portal.plofarma.cl/';
@@ -1052,6 +1032,70 @@ async function loadPortalAccess(userId){
   }
   return {profileResult,membershipResult};
 }
+function mapCatalogItem(item){
+  return {
+    id:item.id,
+    sku:item.sku,
+    name:item.name,
+    lab:item.laboratory,
+    cat:item.category,
+    lote:item.lot_code,
+    venc:item.expires_on,
+    precio:item.net_price,
+    pvp:item.reference_price,
+    stock:item.stock,
+    max:item.max_order_quantity,
+    flash:item.is_flash,
+    maxLiquidacion:item.is_max_liquidation,
+    img:item.image_path
+  };
+}
+function mapOrder(order){
+  const statusMap={
+    submitted:['prep',1], confirmed:['prep',1], preparing:['prep',1],
+    in_transit:['ruta',2], delivered:['entregado',3], cancelled:['cancelado',0]
+  };
+  const [estado,prog]=statusMap[order.status]||statusMap.submitted;
+  const paymentLabels={cash:'Efectivo · retiro en bodega',bank_transfer:'Transferencia · en validación',khipu:'Khipu'};
+  return {
+    num:order.order_number,
+    fecha:new Date(order.created_at).toLocaleDateString('es-CL',{day:'numeric',month:'short',year:'numeric'}),
+    items:(order.order_items||[]).map(item=>`${item.product_name.split(' ×')[0]} ×${item.quantity}`).join(' · '),
+    total:order.grand_total,
+    estado,
+    prog,
+    pago:order.payment_status==='paid'?'pagado':'pendiente',
+    tx:order.payment_reference||'',
+    banco:order.payment_method==='khipu'?'Khipu':'',
+    metodoLabel:paymentLabels[order.payment_method]||''
+  };
+}
+async function loadPortalData(){
+  const retryDelays=[0,700,1400,2800];
+  let catalogResult;
+  let ordersResult;
+  for(let attempt=0;attempt<retryDelays.length;attempt++){
+    if(retryDelays[attempt])await wait(retryDelays[attempt]);
+    [catalogResult,ordersResult]=await Promise.all([
+      authClient.from('catalog_items')
+        .select('id,sku,name,laboratory,category,lot_code,expires_on,net_price,reference_price,stock,max_order_quantity,is_flash,is_max_liquidation,image_path')
+        .order('category',{ascending:true})
+        .order('name',{ascending:true}),
+      authClient.from('orders')
+        .select('order_number,created_at,status,payment_status,payment_method,payment_reference,grand_total,order_items(product_name,quantity)')
+        .order('created_at',{ascending:false})
+        .limit(100)
+    ]);
+    const futureJwt=[catalogResult.error,ordersResult.error].some(isFutureJwtError);
+    if(!futureJwt||attempt===retryDelays.length-1)break;
+  }
+  if(catalogResult.error)throw catalogResult.error;
+  if(ordersResult.error)throw ordersResult.error;
+  return {
+    products:(catalogResult.data||[]).map(mapCatalogItem),
+    orders:(ordersResult.data||[]).map(mapOrder)
+  };
+}
 function getAuthRedirectParams(){
   const searchParams=new URLSearchParams(location.search);
   const hashParams=new URLSearchParams(location.hash.replace(/^#/,''));
@@ -1090,7 +1134,7 @@ function showLoginForm(){
   document.querySelector('.login-card .sub').textContent='Ingresa con el correo invitado por PLO y la clave que tú mismo definiste.';
 }
 function resetPortalState(){
-  user=null; cart={}; orders=[...SEED_ORDERS]; referrals=1;
+  user=null; cart={}; PRODUCTS=[]; orders=[]; activeCat='Todos'; referrals=1;
   $('app-view').style.display='none';
   $('login-view').style.display='grid';
   $('f-pass').value='';
@@ -1105,6 +1149,8 @@ function doLogin(u){
   const tb=$('chip-tier'); tb.className='tier-badge '+u.tier; tb.textContent=TIERS[u.tier].full;
   $('w-name').textContent=u.name;
   $('w-tier').textContent=TIERS[u.tier].full;
+  const flashProduct=PRODUCTS.find(product=>product.flash);
+  $('flash-product-name').textContent=flashProduct?flashProduct.name:'Oferta relámpago disponible';
   renderCats(); renderGrid(); renderOrders(); updateCartUI(); renderReferrals(); renderServicios();
   window.scrollTo(0,0);
   setTimeout(startTour,450);
@@ -1127,6 +1173,10 @@ async function loadPortalSession(session){
       throw new Error('Tu cuenta todavía no tiene acceso activo al Portal PLO. Contacta a tu ejecutivo.');
     }
     if(!TIERS[pharmacy.tier])throw new Error('El nivel comercial de la farmacia no es válido.');
+    setLoginBusy(true,'Cargando catálogo…');
+    const portalData=await loadPortalData();
+    PRODUCTS=portalData.products;
+    orders=portalData.orders;
     setAuthMessage('login-err','');
     doLogin({name:pharmacy.display_name,rut:formatRut(pharmacy.rut),tier:pharmacy.tier,role:membership.role,buyer:profile.full_name});
   }catch(error){
@@ -1228,7 +1278,7 @@ initAuth();
 /* ================= CATÁLOGO ================= */
 function renderCats(){
   const cats=['Todos',...new Set(PRODUCTS.map(p=>p.cat))];
-  $('cat-pills').innerHTML=cats.map(c=>`<button class="cat-pill ${c===activeCat?'active':''}" data-cat="${c}">${c}</button>`).join('');
+  $('cat-pills').innerHTML=cats.map(c=>`<button class="cat-pill ${c===activeCat?'active':''}" data-cat="${escapeHTML(c)}">${escapeHTML(c)}</button>`).join('');
   document.querySelectorAll('.cat-pill').forEach(b=>b.addEventListener('click',()=>{activeCat=b.dataset.cat;renderCats();renderGrid();}));
 }
 function filtered(){
@@ -1267,19 +1317,19 @@ function renderGrid(){
     const margin=marginPct(p), qty=cart[p.sku]||0, subtotal=price*qty;
     return `<tr class="product-row ${p.maxLiquidacion?'max-liquidation':''} ${qty?'has-qty':''}" data-product-row="${p.sku}">
       <td><div class="sheet-product">
-        <span class="sheet-thumb">${p.img?`<img src="${p.img}" alt="" loading="lazy">`:CAT_ICON[p.cat]||'💊'}</span>
-        <div><div class="sheet-pname">${p.name}</div><div class="sheet-pmeta"><span>${p.cat}</span>${p.maxLiquidacion?'<span class="sheet-liquidation">Máxima liquidación</span>':''}${p.flash?'<span class="sheet-flash">⚡ Oferta flash</span>':''}</div></div>
+        <span class="sheet-thumb">${p.img?`<img src="${escapeHTML(p.img)}" alt="" loading="lazy">`:CAT_ICON[p.cat]||'💊'}</span>
+        <div><div class="sheet-pname">${escapeHTML(p.name)}</div><div class="sheet-pmeta"><span>${escapeHTML(p.cat)}</span>${p.maxLiquidacion?'<span class="sheet-liquidation">Máxima liquidación</span>':''}${p.flash?'<span class="sheet-flash">⚡ Oferta flash</span>':''}</div></div>
       </div></td>
-      <td class="sheet-code hide-mobile">${p.sku}</td>
-      <td>${p.lab}</td>
-      <td class="sheet-lot hide-mobile">${p.lote}</td>
+      <td class="sheet-code hide-mobile">${escapeHTML(p.sku)}</td>
+      <td>${escapeHTML(p.lab)}</td>
+      <td class="sheet-lot hide-mobile">${escapeHTML(p.lote)}</td>
       <td class="sheet-date ${vencWarn(p.venc)?'warn':''}">${d}-${m}-${y}</td>
       <td><span class="sheet-stock ${hot?'hot':''}">${p.stock} u.${hot?' ⚠':''}</span></td>
       <td class="sheet-price">${clp(price)}</td>
       <td><button class="sheet-margin" data-calc="${p.sku}" title="Abrir calculadora de margen">${margin}% ↗</button></td>
       <td><div class="sheet-qty">
         <button data-sheet-q="-1" data-sku="${p.sku}" aria-label="Restar una unidad">−</button>
-        <input class="sheet-qty-input" id="q-${p.sku}" data-sku="${p.sku}" type="number" min="0" max="${p.stock}" value="${qty}" inputmode="numeric" aria-label="Cantidad de ${p.name}">
+        <input class="sheet-qty-input" id="q-${p.sku}" data-sku="${p.sku}" type="number" min="0" max="${p.stock}" value="${qty}" inputmode="numeric" aria-label="Cantidad de ${escapeHTML(p.name)}">
         <button data-sheet-q="1" data-sku="${p.sku}" aria-label="Sumar una unidad">+</button>
       </div></td>
       <td><span class="sheet-subtotal ${qty?'':'empty'}" data-subtotal="${p.sku}">${qty?clp(subtotal):'—'}</span></td>
@@ -1361,8 +1411,8 @@ function renderFeaturedCard(){
   $('feat-slot').innerHTML = `
     <div class="feat-card">
       <div class="feat-info">
-        <div class="feat-name">${p.name}</div>
-        <div class="feat-lab">${p.lab} · SKU ${p.sku}</div>
+        <div class="feat-name">${escapeHTML(p.name)}</div>
+        <div class="feat-lab">${escapeHTML(p.lab)} · SKU ${escapeHTML(p.sku)}</div>
         <div class="feat-reason">${isFlash?'⚡ Precio especial':'⭐ Buena oportunidad'} · ${pct}% margen · ${p.stock} u.</div>
       </div>
       <div class="feat-action">
@@ -1373,7 +1423,7 @@ function renderFeaturedCard(){
   $('feat-add').addEventListener('click',()=>{
     setSheetQty(p.sku,(cart[p.sku]||0)+1);
     setFeaturedOpen(false);
-    toast(`<b>${p.name.split(' ×')[0]}</b> agregado al pedido`);
+    toast(`<b>${escapeHTML(p.name.split(' ×')[0])}</b> agregado al pedido`);
   });
 }
 
@@ -1423,7 +1473,11 @@ $('feat-dismiss').addEventListener('click',()=>{
 });
 
 /* ================= CARRITO ================= */
-function cartLines(){ return Object.entries(cart).map(([sku,qty])=>({p:PRODUCTS.find(x=>x.sku===sku),qty})); }
+function cartLines(){
+  return Object.entries(cart)
+    .map(([sku,qty])=>({p:PRODUCTS.find(x=>x.sku===sku),qty}))
+    .filter(line=>line.p);
+}
 function updateCartUI(){
   const lines=cartLines(), n=lines.reduce((a,l)=>a+l.qty,0);
   const cc=$('cart-count'); cc.style.display=n?'grid':'none'; cc.textContent=n;
@@ -1434,8 +1488,8 @@ function updateCartUI(){
     $('cart-body').innerHTML=`<div class="cart-list-head"><span>Productos seleccionados</span><b>${lines.length} producto${lines.length===1?'':'s'}</b></div>`+lines.map(({p,qty})=>`
       <div class="cart-item">
         <div>
-          <div class="ci-name">${p.name}</div>
-          <div class="ci-lot">LOTE ${p.lote} · ${clp(unitPrice(p))} c/u neto</div>
+          <div class="ci-name">${escapeHTML(p.name)}</div>
+          <div class="ci-lot">LOTE ${escapeHTML(p.lote)} · ${clp(unitPrice(p))} c/u neto</div>
           <button class="ci-del" data-del="${p.sku}">Quitar</button>
         </div>
         <div class="ci-right">
@@ -1693,19 +1747,23 @@ function payStepOk(){
 }
 
 /* ================= PEDIDOS ================= */
-const ESTADOS={prep:'En preparación',ruta:'En ruta',entregado:'Entregado'};
+const ESTADOS={prep:'En preparación',ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'};
 function renderOrders(){
+  if(!orders.length){
+    $('orders-list').innerHTML='<div class="empty" style="display:block">Todavía no hay pedidos registrados para esta farmacia.</div>';
+    return;
+  }
   $('orders-list').innerHTML=orders.map((o,i)=>`
     <div class="order-card" style="animation-delay:${i*60}ms">
       <div class="oc-top">
-        <div><span class="oc-num">${o.num}</span> <span class="oc-date">· ${o.fecha}</span>
+        <div><span class="oc-num">${escapeHTML(o.num)}</span> <span class="oc-date">· ${escapeHTML(o.fecha)}</span>
           <span class="paystat ${o.pago==='pagado'?'pagado':'pendiente'}">${o.pago==='pagado'?'✓ Pagado':'Pago pendiente'}</span>
         </div>
         <span class="status ${o.estado}">${ESTADOS[o.estado]}</span>
       </div>
-      <div class="oc-items">${o.items}</div>
-      ${o.tx?`<div style="font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--muted);margin-bottom:10px">khipu · ${o.tx} · ${o.banco}</div>`:''}
-      ${o.metodoLabel?`<div style="font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--muted);margin-bottom:10px">${o.metodoLabel}</div>`:''}
+      <div class="oc-items">${escapeHTML(o.items)}</div>
+      ${o.tx?`<div style="font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--muted);margin-bottom:10px">khipu · ${escapeHTML(o.tx)} · ${escapeHTML(o.banco)}</div>`:''}
+      ${o.metodoLabel?`<div style="font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--muted);margin-bottom:10px">${escapeHTML(o.metodoLabel)}</div>`:''}
       <div class="oc-bottom">
         <div class="oc-track">${[1,2,3].map(s=>`<i class="${s<=o.prog?'on':''}"></i>`).join('')}</div>
         <div class="oc-total">${clp(o.total)} <span style="font-size:.68rem;color:var(--muted);font-weight:400">IVA incl.</span></div>
