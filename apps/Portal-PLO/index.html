@@ -996,7 +996,7 @@ const SUPABASE_URL=LOCAL_DEMO?'https://ceyjjkasemmdtcpdsfly.supabase.co':'https:
 const SUPABASE_PUBLISHABLE_KEY=LOCAL_DEMO?'sb_publishable_GNy-y1gHRCcW1mpNi4ibuw_pFyEfBWa':'sb_publishable_BwhwfQFF5pBZuzusS14XIg_Nj-QTnsL';
 const PORTAL_URL='https://portal.plofarma.cl/';
 const authClient=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
-  auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+  auth:{storageKey:LOCAL_DEMO?'plo-demo-customer-auth':'plo-customer-auth',persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
 });
 let sessionLoading=false;
 let activePortalSession=null;
