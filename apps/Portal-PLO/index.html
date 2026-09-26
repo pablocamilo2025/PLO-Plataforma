@@ -989,8 +989,11 @@ const clp=n=>'$'+Math.round(n).toLocaleString('es-CL');
 const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,char=>({
   '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
 }[char]));
-const SUPABASE_URL='https://bjdzivfwjxplbufqedko.supabase.co';
-const SUPABASE_PUBLISHABLE_KEY='sb_publishable_BwhwfQFF5pBZuzusS14XIg_Nj-QTnsL';
+const LOCAL_DEMO=['localhost','127.0.0.1'].includes(location.hostname)&&location.port==='8000';
+const KHIPU_DEMO=LOCAL_DEMO||location.hostname==='portal.plofarma.cl';
+if(KHIPU_DEMO){const banner=document.createElement('div');banner.textContent='ENTORNO DEMO · Sin dinero real ni despacho';banner.style.cssText='position:fixed;top:0;left:0;right:0;z-index:99999;text-align:center;background:#dfedbd;color:#183b30;padding:6px;font:600 13px system-ui';document.body.append(banner);}
+const SUPABASE_URL=LOCAL_DEMO?'https://ceyjjkasemmdtcpdsfly.supabase.co':'https://bjdzivfwjxplbufqedko.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY=LOCAL_DEMO?'sb_publishable_GNy-y1gHRCcW1mpNi4ibuw_pFyEfBWa':'sb_publishable_BwhwfQFF5pBZuzusS14XIg_Nj-QTnsL';
 const PORTAL_URL='https://portal.plofarma.cl/';
 const authClient=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
   auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
@@ -1064,6 +1067,7 @@ function mapCatalogItem(item){
 }
 function mapOrder(order){
   const statusMap={
+    payment_review:['revision',0],
     awaiting_payment:['pendiente',0], submitted:['pendiente',0], confirmed:['confirmado',1], preparing:['prep',2],
     ready_for_dispatch:['listo',3], in_transit:['ruta',4], delivered:['entregado',5], cancelled:['cancelado',0]
   };
@@ -1602,17 +1606,40 @@ function payStepMetodo(){
         <div class="pm-txt"><b>Transferencia bancaria</b><span>Manual, con validación de comprobante</span></div>
         <span class="pm-arrow">→</span>
       </button>
-      <button class="pm-opt khipu" disabled>
+      <button class="pm-opt khipu" ${KHIPU_DEMO?'data-pm="khipu"':'disabled'}>
         <div class="pm-ico">⚡</div>
-        <div class="pm-txt"><b>Khipu</b><span>Se habilitará al conectar el pago y su webhook real</span></div>
-        <span class="pm-tag reco">Próximamente</span>
+        <div class="pm-txt"><b>Khipu</b><span>${KHIPU_DEMO?'DemoBank · prueba sin dinero real':'Próximamente disponible'}</span></div>
+        <span class="pm-tag reco">${KHIPU_DEMO?'DEMO':'Próximamente'}</span>
       </button>
     </div>`;
   document.querySelectorAll('[data-pm]').forEach(b=>b.addEventListener('click',()=>{
     payCtx.metodo=b.dataset.pm;
     if(payCtx.metodo==='efectivo') payStepEfectivo();
+    else if(payCtx.metodo==='khipu') payStepKhipu();
     else payStepTransferencia();
   }));
+}
+
+function payStepKhipu(){
+  $('pay-title').textContent='Pagar con DemoBank';
+  $('pay-desc').textContent='Prueba sin dinero real ni despacho';
+  $('pay-body').innerHTML=`<div class="pay-amount"><div class="pa-val">${clp(payCtx.total)}</div><p>Reservaremos el stock y abriremos Khipu. El pago se confirma automáticamente cuando Khipu lo valida.</p></div><button class="btn-primary" id="khipu-confirm">Reservar y continuar a DemoBank →</button>`;
+  $('khipu-confirm').addEventListener('click',()=>finalizarPedido('khipu','khipu-confirm'));
+}
+async function continueKhipu(orderNumber,button){
+  if(!KHIPU_DEMO)return;
+  button.disabled=true;
+  try{
+    const {data,error}=await authClient.functions.invoke('create-khipu-payment',{body:{orderNumber}});
+    if(error)throw new Error(await edgeFunctionErrorMessage(error));
+    const url=new URL(data.paymentUrl);
+    if(url.protocol!=='https:'||!['khipu.com','www.khipu.com','app.khipu.com'].includes(url.hostname)||url.username||url.password||url.port)throw new Error('Enlace de pago inválido');
+    location.assign(url.href);
+  }catch(error){
+    const uncertain=['PAYMENT_CREATION_UNCERTAIN','PAYMENT_REQUIRES_REVIEW'].includes(error.message);
+    toast(uncertain?'El cobro necesita revisión. No repitas la transferencia.':escapeHTML(error.message));
+    button.disabled=false;
+  }
 }
 
 function payStepEfectivo(){
@@ -1671,7 +1698,7 @@ async function finalizarPedido(metodo,buttonId){
   button.disabled=true;
   button.textContent='Validando precio y stock…';
 
-  const paymentMethod=metodo==='efectivo'?'cash':'bank_transfer';
+  const paymentMethod=metodo==='khipu'?'khipu':metodo==='efectivo'?'cash':'bank_transfer';
   const {data,error}=await authClient.functions.invoke('place-portal-order',{
     body:{
       pharmacyId:user.pharmacyId,
@@ -1700,6 +1727,15 @@ async function finalizarPedido(metodo,buttonId){
   updateCartUI();
   renderGrid();
   renderOrders();
+  if(metodo==='khipu'){
+    $('pay-title').textContent='Pedido reservado';
+    $('pay-desc').textContent=`Orden ${data.order.orderNumber} · ${clp(data.order.grandTotal)}`;
+    $('pay-body').innerHTML='<p>El pedido está pendiente de pago. Puedes retomar este mismo cobro desde Mis pedidos.</p><button class="btn-primary" id="khipu-resume">Continuar a DemoBank</button><button class="btn-primary" id="khipu-orders">Ver mis pedidos</button>';
+    $('khipu-resume').addEventListener('click',()=>continueKhipu(data.order.orderNumber,$('khipu-resume')));
+    $('khipu-orders').addEventListener('click',()=>{payCtx.locked=false;openPay(false);showView('pedidos');payCtx=null;});
+    await continueKhipu(data.order.orderNumber,$('khipu-resume'));
+    return;
+  }
   showOrderConfirmation(metodo,data.order);
 }
 
@@ -1756,9 +1792,10 @@ function showOrderConfirmation(metodo,order){
 }
 
 /* ================= PEDIDOS ================= */
-const ESTADOS={pendiente:'Pendiente de pago',confirmado:'Pago confirmado',prep:'En preparación',listo:'Listo para despacho',ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'};
+const ESTADOS={revision:'Pago en revisión',pendiente:'Pendiente de pago',confirmado:'Pago confirmado',prep:'En preparación',listo:'Listo para despacho',ruta:'En ruta',entregado:'Entregado',cancelado:'Cancelado'};
 const ORDER_STEPS=['Pedido recibido','Pago confirmado','En preparación','Listo para despacho','En ruta','Entregado'];
 function orderProgress(order){
+  if(order.estado==='revision')return '<div class="order-cancelled-progress">Pago recibido · estamos revisando la disponibilidad antes de confirmar el pedido.</div>';
   if(order.estado==='cancelado')return '<div class="order-cancelled-progress">Pedido cancelado · reserva liberada</div>';
   return `<div class="order-progress" aria-label="Progreso del pedido">${ORDER_STEPS.map((label,index)=>{
     const state=index<order.prog?'done':index===order.prog?'current':'';
@@ -1792,11 +1829,13 @@ function renderOrders(){
       ${o.metodoLabel?`<div style="font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:var(--muted);margin-bottom:10px">${escapeHTML(o.metodoLabel)}</div>`:''}
       ${o.estado==='pendiente'&&o.reservaHasta?`<div style="font-family:'IBM Plex Mono',monospace;font-size:.64rem;color:#a75900;margin-bottom:10px">Stock reservado hasta ${escapeHTML(new Date(o.reservaHasta).toLocaleString('es-CL',{dateStyle:'short',timeStyle:'short'}))}</div>`:''}
       ${receiptBlock(o)}
+      ${KHIPU_DEMO&&o.paymentMethod==='khipu'&&o.rawStatus==='awaiting_payment'&&o.pago!=='pagado'?`<button class="receipt-action" data-khipu-order="${escapeHTML(o.num)}">Continuar pago con DemoBank</button>`:''}
       <div class="oc-bottom">
         ${orderProgress(o)}
         <div class="oc-total">${clp(o.total)} <span style="font-size:.68rem;color:var(--muted);font-weight:400">IVA incl.</span></div>
       </div>
     </div>`).join('');
+  document.querySelectorAll('[data-khipu-order]').forEach(button=>button.addEventListener('click',()=>continueKhipu(button.dataset.khipuOrder,button)));
   document.querySelectorAll('[data-receipt-order]').forEach(button=>button.addEventListener('click',()=>choosePaymentReceipt(Number(button.dataset.receiptOrder),button)));
 }
 

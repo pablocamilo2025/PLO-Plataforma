@@ -1,0 +1,5 @@
+# The handlers validate user JWTs via getUser or Khipu's HMAC respectively.
+[functions.create-khipu-payment]
+verify_jwt = false
+[functions.khipu-webhook]
+verify_jwt = false

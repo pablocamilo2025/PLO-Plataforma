@@ -1,5 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.117.1";
 
+import { allowCheckout } from "../_shared/khipu.ts";
+
 const PORTAL_ORIGIN = "https://portal.plofarma.cl";
 const ALLOWED_ORIGINS = new Set([
   PORTAL_ORIGIN,
@@ -15,7 +17,7 @@ type OrderItem = {
 type RequestBody = {
   pharmacyId?: string;
   clientRequestId?: string;
-  paymentMethod?: "cash" | "bank_transfer";
+  paymentMethod?: "cash" | "bank_transfer" | "khipu";
   items?: OrderItem[];
 };
 
@@ -159,7 +161,12 @@ Deno.serve(async (req: Request) => {
     return json(origin, { error: "No pudimos identificar la farmacia o la solicitud." }, 400);
   }
 
-  if (body.paymentMethod !== "cash" && body.paymentMethod !== "bank_transfer") {
+  if (body.paymentMethod === "khipu") {
+    try { allowCheckout(name => Deno.env.get(name), customer.id); }
+    catch { return json(origin, { error: "Khipu todavía no está disponible." }, 503); }
+  }
+
+  if (body.paymentMethod !== "cash" && body.paymentMethod !== "bank_transfer" && body.paymentMethod !== "khipu") {
     return json(origin, { error: "Ese método de pago todavía no está disponible." }, 422);
   }
 
