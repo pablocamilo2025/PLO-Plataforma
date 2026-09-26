@@ -1023,18 +1023,26 @@ function wait(ms){ return new Promise(resolve=>setTimeout(resolve,ms)); }
 function isFutureJwtError(error){
   return error?.code==='PGRST303'&&String(error.message||'').toLowerCase().includes('jwt issued at future');
 }
-async function loadPortalAccess(userId){
+function sessionDataClient(session){
+  if(!session?.access_token)throw new Error('Tu sesión venció. Vuelve a ingresar.');
+  // A data-only client must not create another Auth instance or emit sign-out events.
+  return window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
+    accessToken:async()=>session.access_token
+  });
+}
+async function loadPortalAccess(userId,session){
+  const dataClient=sessionDataClient(session);
   const retryDelays=[0,700,1400,2800];
   let profileResult;
   let membershipResult;
   for(let attempt=0;attempt<retryDelays.length;attempt++){
     if(retryDelays[attempt])await wait(retryDelays[attempt]);
     [profileResult,membershipResult]=await Promise.all([
-      authClient.from('profiles')
+      dataClient.from('profiles')
         .select('full_name,status')
         .eq('user_id',userId)
         .maybeSingle(),
-      authClient.from('pharmacy_memberships')
+      dataClient.from('pharmacy_memberships')
         .select('role,status,pharmacies!inner(id,rut,display_name,tier,status)')
         .eq('user_id',userId)
         .eq('status','active')
@@ -1094,12 +1102,7 @@ function mapOrder(order){
 }
 async function loadPortalData(session=null){
   if(!session){const result=await authClient.auth.getSession();session=result.data?.session;}
-  if(!session?.access_token)throw new Error('Tu sesión venció. Vuelve a ingresar.');
-  // Bind this batch to the authenticated session, never fall back to the public key.
-  const dataClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,{
-    global:{headers:{Authorization:`Bearer ${session.access_token}`}},
-    auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
-  });
+  const dataClient=sessionDataClient(session);
   const retryDelays=[0,700,1400,2800];
   let catalogResult;
   let ordersResult;
@@ -1196,7 +1199,7 @@ async function loadPortalSession(session){
       window.location.replace(new URL('bodega.html',window.location.href).href);
       return;
     }
-    const {profileResult,membershipResult}=await loadPortalAccess(session.user.id);
+    const {profileResult,membershipResult}=await loadPortalAccess(session.user.id,session);
     if(profileResult.error)throw profileResult.error;
     if(membershipResult.error)throw membershipResult.error;
     const profile=profileResult.data;
