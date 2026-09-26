@@ -999,6 +999,7 @@ const authClient=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE
   auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
 });
 let sessionLoading=false;
+let activePortalSession=null;
 let credentialSetupActive=false;
 
 function unitPrice(p){
@@ -1101,7 +1102,7 @@ function mapOrder(order){
   };
 }
 async function loadPortalData(session=null){
-  if(!session){const result=await authClient.auth.getSession();session=result.data?.session;}
+  if(!session)session=await getPortalSession();
   const dataClient=sessionDataClient(session);
   const retryDelays=[0,700,1400,2800];
   let catalogResult;
@@ -1166,6 +1167,7 @@ function showLoginForm(){
   document.querySelector('.login-card .sub').textContent='Ingresa con el correo invitado por PLO y la clave que tú mismo definiste.';
 }
 function resetPortalState(){
+  activePortalSession=null;
   user=null; cart={}; PRODUCTS=[]; orders=[]; activeCat='Todos'; referrals=1;
   $('app-view').style.display='none';
   $('login-view').style.display='grid';
@@ -1210,6 +1212,7 @@ async function loadPortalSession(session){
     }
     if(!TIERS[pharmacy.tier])throw new Error('El nivel comercial de la farmacia no es válido.');
     setLoginBusy(true,'Cargando catálogo…');
+    activePortalSession=session;
     const portalData=await loadPortalData(session);
     PRODUCTS=portalData.products;
     orders=portalData.orders;
@@ -1292,6 +1295,7 @@ async function initAuth(){
   authClient.auth.onAuthStateChange((event,session)=>{
     setTimeout(()=>{
       if(event==='SIGNED_OUT'){resetPortalState();return;}
+      if(session&&(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'||event==='INITIAL_SESSION'))activePortalSession=session;
       if(authLinkFailed)return;
       if(event==='PASSWORD_RECOVERY')credentialSetupActive=true;
       if(credentialSetupActive){showPasswordSetup();return;}
@@ -1692,17 +1696,23 @@ function payStepTransferencia(){
   $('transf-confirm').addEventListener('click',()=>finalizarPedido('transferencia','transf-confirm'));
 }
 
+async function getPortalSession(){
+  const {data,error}=await authClient.auth.getSession();
+  if(error)throw error;
+  let session=data?.session||activePortalSession;
+  if(session?.expires_at&&session.expires_at*1000<=Date.now()+30000){
+    if(!session.refresh_token)throw new Error('Tu sesión venció. Vuelve a ingresar.');
+    const refreshed=await authClient.auth.refreshSession({refresh_token:session.refresh_token});
+    if(refreshed.error)throw refreshed.error;
+    session=refreshed.data?.session;
+  }
+  if(!session?.access_token)throw new Error('Tu sesión venció. Vuelve a ingresar antes de continuar.');
+  activePortalSession=session;
+  return session;
+}
 async function invokeAuthenticated(name,options={}){
   try{
-    let {data,error}=await authClient.auth.getSession();
-    if(error)throw error;
-    let session=data?.session;
-    if(session?.expires_at&&session.expires_at*1000<=Date.now()+30000){
-      const refreshed=await authClient.auth.refreshSession();
-      if(refreshed.error)throw refreshed.error;
-      session=refreshed.data?.session;
-    }
-    if(!session?.access_token)throw new Error('Tu sesión venció. Vuelve a ingresar antes de continuar.');
+    const session=await getPortalSession();
     return await authClient.functions.invoke(name,{
       ...options,headers:{...options.headers,Authorization:`Bearer ${session.access_token}`}
     });
