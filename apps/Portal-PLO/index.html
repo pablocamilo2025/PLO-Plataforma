@@ -1637,7 +1637,7 @@ async function continueKhipu(orderNumber,button){
   if(!KHIPU_DEMO)return;
   button.disabled=true;
   try{
-    const {data,error}=await authClient.functions.invoke('create-khipu-payment',{body:{orderNumber}});
+    const {data,error}=await invokeAuthenticated('create-khipu-payment',{body:{orderNumber}});
     if(error)throw new Error(await edgeFunctionErrorMessage(error));
     const url=new URL(data.paymentUrl);
     if(url.protocol!=='https:'||!['khipu.com','www.khipu.com','app.khipu.com'].includes(url.hostname)||url.username||url.password||url.port)throw new Error('Enlace de pago inválido');
@@ -1689,6 +1689,25 @@ function payStepTransferencia(){
   $('transf-confirm').addEventListener('click',()=>finalizarPedido('transferencia','transf-confirm'));
 }
 
+async function invokeAuthenticated(name,options={}){
+  try{
+    let {data,error}=await authClient.auth.getSession();
+    if(error)throw error;
+    let session=data?.session;
+    if(session?.expires_at&&session.expires_at*1000<=Date.now()+30000){
+      const refreshed=await authClient.auth.refreshSession();
+      if(refreshed.error)throw refreshed.error;
+      session=refreshed.data?.session;
+    }
+    if(!session?.access_token)throw new Error('Tu sesión venció. Vuelve a ingresar antes de continuar.');
+    return await authClient.functions.invoke(name,{
+      ...options,headers:{...options.headers,Authorization:`Bearer ${session.access_token}`}
+    });
+  }catch(error){
+    return {data:null,error:{context:{json:async()=>({error:error.message||'No pudimos validar tu sesión.'})}}};
+  }
+}
+
 async function edgeFunctionErrorMessage(error){
   try{
     const payload=await error?.context?.json();
@@ -1706,7 +1725,7 @@ async function finalizarPedido(metodo,buttonId){
   button.textContent='Validando precio y stock…';
 
   const paymentMethod=metodo==='khipu'?'khipu':metodo==='efectivo'?'cash':'bank_transfer';
-  const {data,error}=await authClient.functions.invoke('place-portal-order',{
+  const {data,error}=await invokeAuthenticated('place-portal-order',{
     body:{
       pharmacyId:user.pharmacyId,
       clientRequestId:payCtx.clientRequestId,
@@ -1865,7 +1884,7 @@ async function uploadPaymentReceipt(orderId,file,button){
   const label=button.textContent;
   button.disabled=true;button.textContent='Subiendo…';
   const form=new FormData();form.append('orderId',String(orderId));form.append('file',file);
-  const {data,error}=await authClient.functions.invoke('upload-payment-receipt',{body:form});
+  const {data,error}=await invokeAuthenticated('upload-payment-receipt',{body:form});
   if(error||!data?.receipt){
     button.disabled=false;button.textContent=label;
     let message='No pudimos subir el comprobante. Intenta nuevamente.';
