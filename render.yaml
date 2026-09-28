@@ -1,0 +1,25 @@
+# One paid background worker. Existing Supabase stores the queue and prices.
+services:
+  - type: worker
+    name: plo-price-radar
+    runtime: docker
+    plan: 0.5c-512mb
+    region: virginia
+    numInstances: 1
+    autoDeployTrigger: off
+    maxShutdownDelaySeconds: 300
+    dockerfilePath: ./tools/price-radar/backend/Dockerfile
+    dockerContext: ./tools/price-radar/backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: RADAR_CATALOG_KIND
+        value: test
+      - key: SUPABASE_URL
+        value: https://bjdzivfwjxplbufqedko.supabase.co
+      - key: BROWSERBASE_PROJECT_ID
+        value: ba2aeea8-6f92-41b3-8bba-caedd4f5fecb
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: BROWSERBASE_API_KEY
+        sync: false

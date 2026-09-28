@@ -1,0 +1,13 @@
+{
+  "name": "plo-price-radar-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/runtime.test.mjs",
+    "start": "node worker.mjs",
+    "probe": "node probe.mjs"
+  },
+  "dependencies": {
+    "playwright-core": "1.58.2"
+  }
+}
