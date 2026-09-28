@@ -1,0 +1,31 @@
+const assert=require('node:assert/strict');
+const catalog=require('../../apps/Portal-PLO/radar-catalog.js');
+globalThis.XLSX=require('../../apps/Portal-PLO/vendor/xlsx-0.20.3.full.min.js');
+const headers=['sku','nombre','laboratorio','concentracion','presentacion','ean'];
+const values=['SKU-1','Producto de prueba','Laboratorio de prueba','50 mg','30 comprimidos',''];
+const valid=[headers,values];
+assert.equal(catalog.build(valid,'test','Prueba de importación').products.length,1);
+assert.equal(catalog.build(valid,'official','Lista oficial').catalog_kind,'official');
+assert.equal(catalog.build([headers,...Array.from({length:200},(_,i)=>['PLO-'+i,...values.slice(1)])],'official','200 SKU sintéticos').products.length,200);
+assert.throws(()=>catalog.build([headers,values,values],'test','Duplicados'),/repetido/);
+assert.throws(()=>catalog.build([['sku','nombre'],['1','Producto']],'test','Prueba'),/Falta/);
+assert.throws(()=>catalog.build([headers,[...values.slice(0,5),'123']],'test','Prueba'),/EAN/);
+assert.throws(()=>catalog.build(valid,'invalid','Prueba'),/Prueba u Oficial/);
+assert.throws(()=>catalog.build([headers,...Array.from({length:501},(_,i)=>[String(i),...values.slice(1)])],'test','Prueba'),/500/);
+assert(catalog.validEAN('4006381333931'));assert(!catalog.validEAN('4006381333932'));
+assert.deepEqual(catalog.parseCSV('\ufeffsku;nombre\r\nA;"Nombre; con delimitador"\r\n'),[['sku','nombre'],['A','Nombre; con delimitador']]);
+assert.deepEqual(catalog.parseCSV('sku,nombre\nA,"nombre\ncon salto"'),[['sku','nombre'],['A','nombre\ncon salto']]);
+assert.throws(()=>catalog.parseCSV('a,b\n"sin cerrar,b'),/sin cerrar/);
+(async()=>{
+  const XLSX=globalThis.XLSX;
+  // In-memory parser fixtures, not user-facing spreadsheet artifacts.
+  const workbook=XLSX.utils.book_new();XLSX.utils.book_append_sheet(workbook,XLSX.utils.aoa_to_sheet(valid),'Catalogo');
+  const file=()=>({name:'test.xlsx',size:1024,arrayBuffer:async()=>XLSX.write(workbook,{type:'array',bookType:'xlsx'})});
+  const rows=await catalog.read(file());assert.equal(rows[1][0],'SKU-1');
+  workbook.Sheets.Catalogo.A2={t:'n',v:1,f:'1+0'};
+  await assert.rejects(()=>catalog.read(file()),/no fórmulas/);
+  delete workbook.Sheets.Catalogo.A2.f;
+  XLSX.utils.book_append_sheet(workbook,XLSX.utils.aoa_to_sheet([['extra']]),'Extra');
+  await assert.rejects(()=>catalog.read(file()),/una sola hoja/);
+  console.log('PASS: CSV delimiters/BOM/quotes/newlines, duplicate/missing/oversize catalogs, EAN checksum, test/official isolation, actual XLSX decoding and formula/multiple-sheet rejection.');
+})().catch(e=>{console.error(e);process.exitCode=1;});

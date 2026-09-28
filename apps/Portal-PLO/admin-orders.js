@@ -15,8 +15,7 @@
     return data;
   }
   function switchSection(name){
-    $('orders-section').hidden=name!=='orders';$('pharmacies-section').hidden=name!=='pharmacies';
-    ['orders','pharmacies'].forEach(section=>{const button=$(section+'-tab');button.classList.toggle('active',section===name);if(section===name)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
+    ['orders','pharmacies','radar'].forEach(section=>{$(section+'-section').hidden=name!==section;const button=$(section+'-tab');button.classList.toggle('active',section===name);if(section===name)button.setAttribute('aria-current','page');else button.removeAttribute('aria-current');});
   }
   async function load(){
     const request=++listRequest;
@@ -100,6 +99,7 @@
   }
   $('orders-tab').addEventListener('click',()=>switchSection('orders'));
   $('pharmacies-tab').addEventListener('click',()=>switchSection('pharmacies'));
+  $('radar-tab').addEventListener('click',()=>switchSection('radar'));
   $('orders-refresh').addEventListener('click',load);
   $('orders-search-form').addEventListener('submit',event=>{event.preventDefault();page=0;load();});
   $('orders-filter').addEventListener('change',()=>{page=0;load();});
