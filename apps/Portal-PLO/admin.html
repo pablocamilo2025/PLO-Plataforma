@@ -6,6 +6,7 @@
   <meta name="robots" content="noindex,nofollow">
   <title>PloFarma — Administración</title>
   <link rel="stylesheet" href="admin-orders.css">
+  <link rel="stylesheet" href="admin-radar.css?v=20260928-ops1">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -57,6 +58,7 @@
       <nav class="admin-tabs" aria-label="Secciones del administrador">
         <button class="active" id="orders-tab" type="button" aria-current="page">Pedidos</button>
         <button id="pharmacies-tab" type="button">Farmacias e invitaciones</button>
+        <button id="radar-tab" type="button">Radar de precios</button>
       </nav>
       <section id="orders-section" aria-labelledby="orders-heading">
         <div class="page-head"><div><span class="section-eyebrow">Operación comercial</span><h1 id="orders-heading">Pedidos</h1><p>Del pedido recibido a la entrega, con cada movimiento registrado.</p></div><button class="btn btn-ghost" id="orders-refresh" type="button">↻ Actualizar pedidos</button></div>
@@ -67,6 +69,7 @@
           <div class="orders-pagination"><span id="orders-page-label">—</span><div><button id="orders-prev" type="button" class="btn btn-ghost btn-sm" disabled>← Anterior</button><button id="orders-next" type="button" class="btn btn-ghost btn-sm" disabled>Siguiente →</button></div></div>
         </section>
       </section>
+      <section id="radar-section" hidden aria-label="Radar de precios"><details style="padding:20px;border:1px solid #bccfc6;border-radius:12px;margin-bottom:20px"><summary>Calculadora · piloto con 1 producto real</summary><p>Losartán 50 mg × 30. Fichas de prueba independientes: equivalencia comercial no aprobada.</p><label>Farmacia <select id="pilot-source"><option value="drsimi">Dr. Simi</option><option value="eco">Farmacias Eco · Cenabast</option><option value="cruzverde">Cruz Verde · Las Condes</option></select></label> <label>Costo para el ejercicio ($) <input id="pilot-cost" type="number" min="0" placeholder="Ingresa tu costo"></label> <label>Precio de venta ($) <input id="pilot-sale" type="number" min="0" placeholder="Usar precio consultado"></label><p id="pilot-margin"></p><button type="button" id="pilot-load">Consultar precio guardado</button><div id="pilot-result" aria-live="polite"></div></details><div id="radar-workspace"></div></section>
       <section id="pharmacies-section" hidden>
       <div class="page-head"><div><h1>Preinscripciones</h1><p>Valida la farmacia, elige su nivel comercial y envía el acceso.</p></div><button class="btn btn-ghost" id="refresh-button" type="button">↻ Actualizar</button></div>
       <section class="invite-card" aria-labelledby="manual-invite-title">
@@ -94,6 +97,13 @@
   <dialog id="order-dialog" aria-labelledby="order-dialog-title"><header class="order-dialog-head"><div><span class="section-eyebrow">Detalle del pedido</span><h2 id="order-dialog-title">Pedido</h2></div><button type="button" class="btn btn-ghost btn-sm" id="order-close" aria-label="Cerrar detalle">✕</button></header><div id="order-detail" class="order-detail"></div></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="vendor/xlsx-0.20.3.full.min.js"></script>
+  <script src="radar-catalog.js?v=radar-pilot-20260928"></script>
+  <script src="radar-workspace.js?v=20260928-ops1"></script>
+  <script src="admin-radar.js?v=20260928-ops1"></script>
+  <script src="radar-api.js?v=radar-pilot-20260928"></script>
+  <script src="radar-calculator.js?v=radar-pilot-20260928"></script>
+  <script src="radar-operations.js?v=20260928-ops1"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.min.js" integrity="sha384-q36VSR1ktH2hgqgm+0LDeyqPW8CyZHSxfDSttSPm5ReOJzB+sYThmh7D4fE+jWTs" crossorigin="anonymous"></script>
   <script>
     const SUPABASE_URL='https://bjdzivfwjxplbufqedko.supabase.co';
@@ -121,6 +131,21 @@
       return data;
     }
 
+    let pilotData=null,pilotRequest=0;
+    function pilotMargin(){
+      const cost=Number($('pilot-cost').value),sale=Number($('pilot-sale').value);
+      $('pilot-margin').textContent=cost>0&&sale>0?`Utilidad por unidad: $${Math.round(sale-cost).toLocaleString('es-CL')} · Margen sobre venta: ${((1-cost/sale)*100).toFixed(1)}%`:'Ingresa un costo para calcular el margen. Usa costo y venta sobre la misma base de impuestos.';
+    }
+    function pilotRender(){if(pilotData)RadarCalculator.render($('pilot-result'),pilotData,Number($('pilot-cost').value),price=>{$('pilot-sale').value=price;pilotMargin();});}
+    $('pilot-cost').addEventListener('input',()=>{pilotMargin();pilotRender();});
+    $('pilot-sale').addEventListener('input',pilotMargin);
+    $('pilot-source').onchange=()=>{pilotRequest++;pilotData=null;$('pilot-result').textContent='Consulta la ficha seleccionada.';$('pilot-sale').value='';$('pilot-load').disabled=false;pilotMargin();};
+    $('pilot-load').onclick=async()=>{
+      const request=++pilotRequest;$('pilot-load').disabled=true;$('pilot-result').textContent='Leyendo precio guardado…';
+      try{const data=await RadarAPI.pilotPrice(client,$('pilot-source').value);if(request!==pilotRequest)return;pilotData=data;pilotRender();}
+      catch{if(request===pilotRequest)$('pilot-result').textContent='No se pudo consultar. Revisa tu sesión administrativa y vuelve a intentar.';}
+      finally{if(request===pilotRequest)$('pilot-load').disabled=false;}
+    };
     async function requireAdmin(session){
       if(!session){showLogin();return false;}
       const {data,error}=await client.auth.getUser();
@@ -130,12 +155,13 @@
         await client.auth.signOut();showLogin();showMessage('login-message','error','Esta cuenta no tiene permiso de administración.');return false;
       }
       $('operator-email').textContent=user.email||'Administrador';
+      window.portalRadar?.mount(user.id,undefined,client);
       $('login-view').style.display='none';$('app-view').style.display='block';
       await Promise.all([loadRegistrations(),window.portalOrders?.load()]);
       return true;
     }
 
-    function showLogin(){window.portalOrders?.clear();$('app-view').style.display='none';$('login-view').style.display='grid';}
+    function showLogin(){pilotRequest++;pilotData=null;$('pilot-result').textContent='';$('pilot-load').disabled=false;window.portalOrders?.clear();window.portalRadar?.clear();$('app-view').style.display='none';$('login-view').style.display='grid';}
 
     async function loadRegistrations(){
       $('table-content').className='loading';$('table-content').textContent='Cargando preinscripciones…';
@@ -222,6 +248,6 @@
     client?.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT')showLogin();else if(event==='SIGNED_IN'&&session)setTimeout(()=>requireAdmin(session),0);});
     (async()=>{if(!client){showMessage('login-message','error','Supabase no está disponible.');return;}const {data}=await client.auth.getSession();if(data.session)await requireAdmin(data.session);})();
   </script>
-  <script src="admin-orders.js"></script>
+  <script src="admin-orders.js?v=radar-pilot-20260928"></script>
 </body>
 </html>
