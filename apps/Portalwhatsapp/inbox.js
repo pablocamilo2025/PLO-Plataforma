@@ -1,17 +1,15 @@
+import {demoPharmacies,demoContacts,samples,demoMessages,demoOrders,demoCarts,initialNotes} from './demo-data.mjs';
 const $=id=>document.getElementById(id);
 const local=['localhost','127.0.0.1'].includes(location.hostname);
-const demo=local&&new URLSearchParams(location.search).get('demo')==='1';
+const demo=document.body.dataset.presentation==='true'||(local&&new URLSearchParams(location.search).get('demo')==='1');
 const client=!demo&&window.supabase?.createClient('https://bjdzivfwjxplbufqedko.supabase.co','sb_publishable_BwhwfQFF5pBZuzusS14XIg_Nj-QTnsL',{auth:{storageKey:'plo-whatsapp-auth',detectSessionInUrl:false}});
 let rows=[],selected=null,page=0,hasMore=false,generation=0;
 const contexts=new Map(),edits=new Map(),demoNotes=new Map(),demoDrafts=new Map();
 let pharmacyResults=[];
-const demoContacts=[];
-const demoPharmacy={id:'22222222-2222-4222-8222-222222222222',display_name:'Farmacia de demostración',tier:'socio',rut:'DEMO'};
-demoContacts.push({id:'demo-contact',pharmacy_id:demoPharmacy.id,phone:'56900000001',contact_name:'Contacto de ejemplo',active:true});
-const samples=[{id:'sample-1',wa_id:'56900000001',display_name:'Contacto de ejemplo',status:'pending',last_message_at:new Date().toISOString(),last_message_id:'demo-1',last_preview:'Hola, quisiera consultar por mi pedido.',pharmacies:null},{id:'sample-2',wa_id:'56900000002',display_name:'Farmacia de ejemplo',status:'resolved',last_message_at:new Date().toISOString(),last_message_id:'demo-2',last_preview:'Gracias por la información.',link_mode:'manual',pharmacy_id:demoPharmacy.id,pharmacies:demoPharmacy}];
+if(demo)for(const [id,notes] of Object.entries(initialNotes))demoNotes.set(id,notes);
 function notice(text){$('notice').textContent=text;}
 function clearSelection(){selected=null;generation++;$('messages').textContent='Selecciona un contacto para consultar sus mensajes.';$('contact').textContent='Selecciona una conversación';$('phone').textContent='';$('pharmacy').textContent='Sin selección';$('tier-label').textContent='';$('identity-status').textContent='';$('resolve').hidden=true;for(const id of ['reply-tools','notes-tools','case-context'])$(id).hidden=true;}
-async function api(body){const {data,error}=await client.functions.invoke('whatsapp-inbox',{body});if(error||data?.error)throw new Error(data?.error||'No se pudo conectar la bandeja. La configuración del servicio puede estar pendiente.');return data;}
+async function api(body){if(demo)throw new Error("La demostración no tiene acceso a datos reales.");const {data,error}=await client.functions.invoke('whatsapp-inbox',{body});if(error||data?.error)throw new Error(data?.error||'No se pudo conectar la bandeja. La configuración del servicio puede estar pendiente.');return data;}
 function render(){
  $('count').textContent=rows.length;$('page').textContent=page+1;$('prev').disabled=page===0;$('next').disabled=!hasMore;
  const q=$('search').value.trim().toLowerCase();const filtered=rows.filter(r=>($('status').value==='all'||r.status===$('status').value)&&($('tier').value==='all'||r.pharmacies?.tier===$('tier').value)&&[r.display_name,r.wa_id,r.pharmacies?.display_name].join(' ').toLowerCase().includes(q));
@@ -21,15 +19,15 @@ function render(){
 }
 async function select(row){
  selected=row;$('profile-avatar').textContent=(row.display_name||'Cliente').split(/\s+/).slice(0,2).map(n=>n[0]).join('').toUpperCase();const current=++generation;render();$('contact').textContent=row.display_name||row.wa_id;$('phone').textContent='+'+row.wa_id;$('pharmacy').textContent=row.pharmacies?.display_name||'Contacto sin vincular';$('tier-label').textContent=row.pharmacies?.tier==='socio'?'PLO Socio':row.pharmacies?.tier==='acceso'?'PLO Acceso':'';$('resolve').hidden=false;$('resolve').textContent=row.status==='resolved'?'Reabrir caso':'Resolver caso';$('messages').textContent='Cargando mensajes…';for(const id of ['reply-tools','notes-tools','case-context'])$(id).hidden=true;loadContext(row,current);
- try{const data=demo?{messages:[{body:row.last_preview,sent_at:row.last_message_at}],limited:false}:await api({action:'messages',id:row.id});if(current!==generation)return;$('messages').replaceChildren();if(data.limited){const p=document.createElement('p');p.textContent='Se muestran los 100 mensajes más recientes.';$('messages').append(p);}for(const m of data.messages){const div=document.createElement('div');div.className='message';div.textContent=m.body;const time=document.createElement('time');time.textContent=new Date(m.sent_at).toLocaleString('es-CL');div.append(time);$('messages').append(div);}if(!data.messages.length)$('messages').textContent='No hay mensajes recibidos.';}catch(e){if(current===generation){$('messages').textContent='No fue posible cargar los mensajes.';notice(e.message);}}
+ try{const data=demo?{messages:demoMessages[row.id]||[],limited:false}:await api({action:'messages',id:row.id});if(current!==generation)return;$('messages').replaceChildren();if(data.limited){const p=document.createElement('p');p.textContent='Se muestran los 100 mensajes más recientes.';$('messages').append(p);}for(const m of data.messages){const div=document.createElement('div');div.className='message'+(demo&&m.direction==='outbound'?' outbound':'');div.textContent=m.body;const time=document.createElement('time');time.textContent=new Date(m.sent_at).toLocaleString('es-CL');div.append(time);$('messages').append(div);}if(!data.messages.length)$('messages').textContent='No hay mensajes recibidos.';}catch(e){if(current===generation){$('messages').textContent='No fue posible cargar los mensajes.';notice(e.message);}}
 }
-async function refresh(){clearSelection();const request=generation;$('refresh').disabled=true;try{const result=demo?{conversations:samples,hasMore:false}:await api({action:'list',page});if(request!==generation)return;rows=result.conversations;hasMore=result.hasMore;render();notice(demo?'Vista de prueba local: todos los contactos y mensajes son ficticios. No se envía nada a WhatsApp.':'Bandeja actualizada. Envío de respuestas pendiente de integración.');}catch(e){if(request!==generation)return;rows=[];hasMore=false;render();notice(e.message);}finally{$('refresh').disabled=false;}}
+async function refresh(){clearSelection();const request=generation;$('refresh').disabled=true;try{const result=demo?{conversations:samples,hasMore:false}:await api({action:'list',page});if(request!==generation)return;rows=result.conversations;hasMore=result.hasMore;render();notice(demo?'DEMOSTRACIÓN · Clientes, compras y respuestas ficticios. Sin conexión a WhatsApp ni datos reales. Los cambios se reinician al recargar.':'Bandeja actualizada. Envío de respuestas pendiente de integración.');}catch(e){if(request!==generation)return;rows=[];hasMore=false;render();notice(e.message);}finally{$('refresh').disabled=false;}}
 async function loadContext(row,current){
  try{
   const matches=demo?demoContacts.filter(c=>c.phone===row.wa_id&&c.active):[];
-  if(demo&&row.link_mode!=='manual'){row.pharmacies=matches.length===1?demoPharmacy:null;row.pharmacy_id=row.pharmacies?.id||null;row.link_mode=matches.length===1?'automatic':'none';}
+  if(demo&&row.link_mode!=='manual'){row.pharmacies=matches.length===1?demoPharmacies.find(p=>p.id===matches[0].pharmacy_id):null;row.pharmacy_id=row.pharmacies?.id||null;row.link_mode=matches.length===1?'automatic':'none';}
 
-  const context=demo?{pharmacy:row.pharmacies,notes:demoNotes.get(row.id)||[],draft:demoDrafts.get(row.id)||{body:'',revision:0},contacts:demoContacts.filter(c=>c.pharmacy_id===row.pharmacy_id),match:{matches:matches.length},linkMode:row.link_mode||'none',carts:row.pharmacies?[{user_id:'demo-user',session_id:'demo-session',updated_at:new Date().toISOString(),items:[{sku:'PLO-0001',name:'Producto de demostración',quantity:3}]}]:[],orders:row.pharmacies?[{order_number:'PEDIDO-DEMO',status:'preparing',payment_status:'paid',grand_total:125000,created_at:new Date().toISOString()}]:[]}:await api({action:'context',id:row.id});
+  const context=demo?{pharmacy:row.pharmacies,notes:demoNotes.get(row.id)||[],draft:demoDrafts.get(row.id)||{body:'',revision:0},contacts:demoContacts.filter(c=>c.pharmacy_id===row.pharmacy_id),match:{matches:matches.length},linkMode:row.link_mode||'none',carts:row.pharmacies?demoCarts[row.pharmacy_id]||[]:[],orders:row.pharmacies?demoOrders[row.pharmacy_id]||[]:[]}:await api({action:'context',id:row.id});
   if(current!==generation||selected?.id!==row.id)return;
   contexts.set(row.id,context);row.pharmacy_id=context.pharmacy?.id||null;row.pharmacies=context.pharmacy;row.link_mode=context.linkMode;render();
   $('pharmacy').textContent=context.pharmacy?.display_name||'Contacto sin vincular';$('tier-label').textContent=context.pharmacy?'PLO '+context.pharmacy.tier:'';
@@ -62,7 +60,7 @@ $('save-note').onclick=async()=>{
 };
 $('find-pharmacy').onclick=async()=>{
  if(!selected)return;const current=generation,search=$('pharmacy-search').value.trim();if(search.length<2)return notice('Escribe al menos dos caracteres del nombre.');$('find-pharmacy').disabled=true;
- try{const result=demo?{pharmacies:demoPharmacy.display_name.toLowerCase().includes(search.toLowerCase())?[demoPharmacy]:[]}:await api({action:'pharmacies',search});if(current!==generation)return;pharmacyResults=result.pharmacies;$('pharmacy-options').replaceChildren(new Option(pharmacyResults.length?'Selecciona un resultado':'Sin coincidencias',''));for(const p of pharmacyResults)$('pharmacy-options').append(new Option(p.display_name+' · '+p.rut,p.id));}catch(e){notice(e.message);}finally{$('find-pharmacy').disabled=false;}
+ try{const result=demo?{pharmacies:demoPharmacies.filter(p=>p.display_name.toLowerCase().includes(search.toLowerCase()))}:await api({action:'pharmacies',search});if(current!==generation)return;pharmacyResults=result.pharmacies;$('pharmacy-options').replaceChildren(new Option(pharmacyResults.length?'Selecciona un resultado':'Sin coincidencias',''));for(const p of pharmacyResults)$('pharmacy-options').append(new Option(p.display_name+' · '+p.rut,p.id));}catch(e){notice(e.message);}finally{$('find-pharmacy').disabled=false;}
 };
 async function linkPharmacy(remove){
  if(!selected)return;const row=selected,current=generation;const pharmacy=remove?null:pharmacyResults.find(p=>p.id===$('pharmacy-options').value);if(!remove&&!pharmacy)return notice('Selecciona una farmacia para vincular.');
@@ -79,11 +77,11 @@ $('register-contact').onclick=async()=>{
 };
 $('link-pharmacy').onclick=()=>linkPharmacy(false);$('unlink-pharmacy').onclick=()=>linkPharmacy(true);
 window.addEventListener('beforeunload',e=>{if(edits.size){e.preventDefault();e.returnValue='';}});
-async function showWorkspace(){document.body.classList.add('workspace-open'); $('login').hidden=true;$('workspace').hidden=false;$('logout').hidden=demo;$('mode').textContent=demo?'Demostración local':'Bandeja de recepción';await refresh();}
+async function showWorkspace(){document.body.classList.add('workspace-open'); $('login').hidden=true;$('workspace').hidden=false;$('logout').hidden=demo;$('mode').textContent=demo?'Demo para presentación':'Bandeja de recepción';await refresh();}
 $('demo-link').hidden=!local;
 $('login-form').onsubmit=async e=>{e.preventDefault();if(!client){notice('No se pudo cargar el servicio de acceso. Revisa la conexión.');return;}$('login-button').disabled=true;try{const {data,error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});$('password').value='';if(error)throw new Error('No fue posible iniciar sesión. Revisa tus datos.');if(data.user.app_metadata?.role!=='portal_admin'){await client.auth.signOut();throw new Error('Esta bandeja requiere una cuenta administradora.');}await showWorkspace();}catch(e){notice(e.message);}finally{$('login-button').disabled=false;}};
 $('logout').onclick=async()=>{document.body.classList.remove('workspace-open');clearSelection();rows=[];contexts.clear();edits.clear();$('reply').value='';$('note').value='';render();$('workspace').hidden=true;$('login').hidden=false;$('logout').hidden=true;await client?.auth.signOut();notice('Sesión cerrada.');};
 $('refresh').onclick=refresh;for(const id of ['search','status','tier'])$(id).addEventListener('input',render);
 $('next').onclick=()=>{page++;refresh();};$('prev').onclick=()=>{if(page>0)page--;refresh();};
 $('resolve').onclick=async()=>{if(!selected)return;const row=selected;const status=row.status==='pending'?'resolved':'pending';$('resolve').disabled=true;try{if(demo)row.status=status;else await api({action:'status',id:row.id,status,expectedMessage:row.last_message_id});await refresh();}catch(e){notice(e.message);}finally{$('resolve').disabled=false;}};
-if(demo)showWorkspace();
+if(demo)showWorkspace().then(()=>select(samples[0]));
