@@ -2,6 +2,26 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "soporte.plofarma.cl"
+        }
+      ],
+      "destination": "/apps/Portalwhatsapp/inbox.html"
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "soporte.plofarma.cl"
+        }
+      ],
+      "destination": "/apps/Portalwhatsapp/:path*"
+    },
+    {
       "source": "/:path*",
       "has": [
         {
