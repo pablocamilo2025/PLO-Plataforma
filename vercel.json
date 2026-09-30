@@ -31,5 +31,18 @@
       ],
       "destination": "/apps/Portal-PLO/:path*"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "soporte.plofarma.cl"
+        }
+      ],
+      "destination": "/inbox.html",
+      "permanent": false
+    }
   ]
 }
