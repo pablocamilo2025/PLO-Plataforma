@@ -3,3 +3,9 @@
 verify_jwt = false
 [functions.khipu-webhook]
 verify_jwt = false
+
+[functions.whatsapp-webhook]
+verify_jwt = false
+
+[functions.whatsapp-inbox]
+verify_jwt = false

@@ -1002,6 +1002,38 @@ let sessionLoading=false;
 let activePortalSession=null;
 let credentialSetupActive=false;
 
+let cartContextUserId=null;
+// Shared purchase context: quantities only, never a submitted order or reserved stock.
+let cartContextSession=crypto.randomUUID();
+let cartSyncTimer=null;
+let cartRestoredFor=null;
+const cartPublisherPromise=import('./cart-context.mjs').then(({createCartPublisher})=>createCartPublisher({
+ write:async snapshot=>{
+  const {data}=await authClient.auth.getSession();
+  if(!data.session||data.session.user.id!==snapshot.user_id)throw new Error('Session changed');
+  const {error}=await authClient.from('portal_cart_snapshots').upsert(snapshot,{onConflict:'pharmacy_id,user_id,session_id'});
+  if(error)throw error;
+ },
+ onState:(state,snapshot)=>{
+  if(user?.pharmacyId!==snapshot.pharmacy_id||cartContextUserId!==snapshot.user_id)return;
+  let label=$('cart-sync-state');if(!label){label=document.createElement('p');label.id='cart-sync-state';label.style.cssText='font-size:12px;color:#60756d;padding:0 18px';$('drawer-summary').after(label);}
+  label.textContent=state==='synced'?'Selección compartida con atención al cliente. No es un pedido.':state==='pending'?'Actualizando selección para atención…':'Selección guardada en este navegador. Sin conexión con atención.';
+ }
+}));
+function cartStorageKey(){return cartContextUserId&&user?.pharmacyId?'plo-cart-v1:'+cartContextUserId+':'+user.pharmacyId:null;}
+function publishCartContext(){
+ if(!user?.pharmacyId||!cartContextUserId)return;
+ const snapshot={pharmacy_id:user.pharmacyId,user_id:cartContextUserId,session_id:cartContextSession,items:Object.entries(cart).map(([sku,quantity])=>({sku,quantity}))};
+ try{localStorage.setItem(cartStorageKey(),JSON.stringify(cart));}catch{}
+ clearTimeout(cartSyncTimer);cartSyncTimer=setTimeout(()=>{cartPublisherPromise.then(p=>p.publish(snapshot)).catch(()=>{});},500);
+}
+function restoreCartContext(){
+ const storageKey=cartStorageKey();if(cartRestoredFor===storageKey)return;cartRestoredFor=storageKey;
+ try{const saved=JSON.parse(localStorage.getItem(cartStorageKey())||'{}');cart={};for(const [sku,qty] of Object.entries(saved)){const product=PRODUCTS.find(p=>p.sku===sku);if(product&&Number.isSafeInteger(qty)&&qty>0){const available=Math.min(qty,product.stock);if(available>0)cart[sku]=available;}}}catch{cart={};}
+ updateCartUI();publishCartContext();
+}
+setInterval(()=>{if(document.visibilityState==='visible')publishCartContext();},30000);
+
 function unitPrice(p){
   return Math.round(p.precio*(1-(p.discountPct||0)/100));
 }
@@ -1167,6 +1199,7 @@ function showLoginForm(){
   document.querySelector('.login-card .sub').textContent='Ingresa con el correo invitado por PLO y la clave que tú mismo definiste.';
 }
 function resetPortalState(){
+  clearTimeout(cartSyncTimer);cartContextSession=crypto.randomUUID();cartRestoredFor=null;cartContextUserId=null;
   activePortalSession=null;
   user=null; cart={}; PRODUCTS=[]; orders=[]; activeCat='Todos'; referrals=1;
   $('app-view').style.display='none';
@@ -1217,7 +1250,9 @@ async function loadPortalSession(session){
     PRODUCTS=portalData.products;
     orders=portalData.orders;
     setAuthMessage('login-err','');
+    cartContextUserId=session.user.id;
     doLogin({name:pharmacy.display_name,rut:formatRut(pharmacy.rut),tier:pharmacy.tier,role:membership.role,buyer:profile.full_name,pharmacyId:pharmacy.id});
+    restoreCartContext();
   }catch(error){
     const temporaryClockSkew=isFutureJwtError(error);
     if(!temporaryClockSkew)await authClient.auth.signOut();
@@ -1397,7 +1432,7 @@ function setSheetQty(sku,value){
   const p=PRODUCTS.find(x=>x.sku===sku); if(!p) return;
   const qty=Math.min(p.stock,Math.max(0,Math.floor(Number(value)||0)));
   if(qty) cart[sku]=qty; else delete cart[sku];
-  updateCartUI();
+  updateCartUI();publishCartContext();
 }
 
 function syncSheetRows(){
@@ -1763,7 +1798,7 @@ async function finalizarPedido(metodo,buttonId){
     orders=portalData.orders;
   }
   cart={};
-  updateCartUI();
+  updateCartUI();publishCartContext();
   renderGrid();
   renderOrders();
   if(metodo==='khipu'){

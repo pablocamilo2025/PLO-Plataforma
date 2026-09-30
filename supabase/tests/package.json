@@ -1,0 +1,11 @@
+{
+  "name": "plo-payment-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test whatsapp*.test.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.14"
+  }
+}
